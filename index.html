@@ -14,6 +14,7 @@
   <script defer src="analytics.js"></script>
   <script defer src="app.js"></script>
   <script defer src="feedback.js"></script>
+  <script defer src="onboarding.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -42,7 +43,19 @@ WHEN MATCHED THEN UPDATE ...</pre>
     </section>
 
     <section class="tool-section" id="tool"><div class="shell">
-      <div class="section-heading"><div><div class="eyebrow">IMPORT CHECKER · V0.3.1</div><h2>Drop a file. See what will break.</h2></div><span class="local-badge">● processed locally</span></div>
+      <div class="section-heading"><div><div class="eyebrow">IMPORT CHECKER · V0.3.3</div><h2>Drop a file. See what will break.</h2></div><span class="local-badge">● processed locally</span></div>
+
+      <div class="onboarding-card" id="onboardingCard" aria-live="polite">
+        <div class="onboarding-head"><div><span class="eyebrow">QUICK START</span><h3>Get to a useful result in three steps.</h3></div><button class="onboarding-hide" id="onboardingHide" type="button">Hide</button></div>
+        <div class="onboarding-steps">
+          <button class="onboarding-step active" id="onboardingStepLoad" type="button" data-target="#fileInput"><span>1</span><div><strong>Load data</strong><small>Choose CSV/Excel or try the sample dataset.</small></div></button>
+          <button class="onboarding-step" id="onboardingStepInspect" type="button" data-target="mapping"><span>2</span><div><strong>Inspect & map</strong><small>Review issues, mapping and validation rules.</small></div></button>
+          <button class="onboarding-step" id="onboardingStepOutput" type="button" data-target="sql"><span>3</span><div><strong>Export or generate</strong><small>Create clean data or safe SQL from valid rows.</small></div></button>
+        </div>
+        <div class="onboarding-pro hidden" id="onboardingPro"><strong>Repeat this workflow often?</strong><span>RowMend Pro is being shaped around reusable team profiles, audit and automation.</span><button class="mini-btn" id="onboardingProCta" type="button">Help shape Pro</button></div>
+      </div>
+      <button class="onboarding-show hidden" id="onboardingShow" type="button">Show quick start</button>
+
       <div class="tool-grid">
         <aside class="control-card">
           <label class="dropzone" id="dropzone" for="fileInput"><input id="fileInput" type="file" accept=".csv,.tsv,.xlsx,.xls" hidden /><span class="upload-icon">⇧</span><strong>Drop CSV or Excel here</strong><small>or click to choose a file</small><small class="muted">CSV · TSV · XLSX · XLS</small></label>
@@ -75,7 +88,7 @@ WHEN MATCHED THEN UPDATE ...</pre>
     <section class="privacy shell" id="privacy"><div><div class="eyebrow">PRIVACY BY ARCHITECTURE</div><h2>Your spreadsheet is not our dataset.</h2></div><div><p>RowMend is designed as a local-first tool. Parsing, validation, mapping, profile storage and SQL generation happen in the browser. This MVP has no application backend and no account system.</p><p class="muted">Saved mapping profiles remain in local browser storage until you delete them. Voluntary product feedback is collected separately through Tally and never includes your uploaded file, spreadsheet contents, column names, generated SQL, target table names or validation results.</p></div></section>
     <section class="pricing shell" id="pricing"><div class="pricing-copy"><div class="eyebrow">NEXT: ROWMEND PRO</div><h2>Turn recurring imports into a governed workflow.</h2><p>The free tool supports local mapping profiles and validation. A future Pro version can add team-shared profiles, CI/CD checks, audit trails and richer automation.</p></div><div class="pricing-card"><div><strong>Free</strong><span>now</span></div><ul><li>CSV & Excel analysis</li><li>Automatic/custom CSV delimiters</li><li>Configurable validation rules</li><li>Column mapping</li><li>Local saved profiles</li><li>Error / clean CSV export</li><li>Safe-by-default SQL generation</li><li>Oracle / SQL Server / PostgreSQL</li></ul><button class="btn primary full" id="proInterest" type="button">Help shape RowMend Pro</button><small id="interestNote">Short voluntary survey. No file or dataset content is sent.</small></div></section>
   </main>
-  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Working product name · MVP 0.3.1</p><div><button class="footer-feedback" id="footerFeedback" type="button">Give feedback</button><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div></footer>
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Working product name · MVP 0.3.3</p><div><button class="footer-feedback" id="footerFeedback" type="button">Give feedback</button><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div></footer>
 
   <div class="feedback-modal hidden" id="feedbackModal" aria-hidden="true">
     <div class="feedback-dialog" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
