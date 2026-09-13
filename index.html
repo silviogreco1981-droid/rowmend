@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RowMend - CSV data quality and SQL generator</title>
+<link rel="stylesheet" href="styles.css">
+<script defer src="app.js"></script>
+</head>
+<body>
+<header class="topbar shell"><a class="brand" href="#top">RowMend</a><span>Local-first data tooling</span></header>
+<main id="top">
+<section class="hero shell"><p>LOCAL-FIRST DATA TOOLING</p><h1>Fix bad data before it reaches your database.</h1><p class="lede">Validate CSV data, inspect data quality, and generate SQL for Oracle, SQL Server and PostgreSQL in your browser.</p><p><a class="btn primary" href="#tool">Try it free</a> <button class="btn" id="loadDemoHero" type="button">Load sample data</button></p><p>No signup. No file upload. No backend.</p></section>
+<section class="tool-section" id="tool"><div class="shell"><h2>Load data. See what will break.</h2><div class="tool-grid"><aside class="control-card">
+<label class="dropzone" id="dropzone" for="fileInput"><strong>Choose a CSV file</strong></label><input id="fileInput" type="file" accept=".csv,.tsv" hidden>
+<button class="btn" id="loadDemo" type="button">Use sample dataset</button>
+<label class="field">Database<select id="dialect"><option value="oracle">Oracle</option><option value="sqlserver">SQL Server</option><option value="postgres">PostgreSQL</option></select></label>
+<label class="field">Target table<input id="tableName" value="CUSTOMERS"></label>
+<label class="field">Key column<select id="keyColumn"></select></label>
+<button class="btn primary" id="generateInsert" disabled>Generate INSERT</button><button class="btn" id="generateMerge" disabled>Generate MERGE or UPSERT</button>
+</aside><section class="results-card"><div id="emptyState"><strong>No data loaded yet.</strong><p>Load the sample dataset or choose a CSV file.</p></div><div id="results" class="hidden"><div class="metrics" id="metrics"></div><div class="tabs"><button class="tab active" data-tab="issues">Issues</button><button class="tab" data-tab="schema">Schema</button><button class="tab" data-tab="preview">Preview</button><button class="tab" data-tab="sql">SQL</button></div><div class="panel" id="issuesPanel"></div><div class="panel hidden" id="schemaPanel"></div><div class="panel hidden" id="previewPanel"></div><div class="panel hidden" id="sqlPanel"><p><strong id="sqlLabel">Generated SQL</strong> <button id="copySql">Copy</button> <button id="downloadSql">Download</button></p><pre id="sqlOutput">Generate SQL to see it here.</pre></div></div></section></div></div></section>
+<section class="content-section shell"><h2>A safer import workflow.</h2><p>RowMend identifies obvious data-quality problems, infers a simple schema and produces reusable SQL without requiring an account.</p><button class="btn" id="proInterest">I'd use RowMend Pro</button><p id="interestNote"></p></section>
+</main><footer class="footer"><div class="shell">RowMend MVP 0.1</div></footer>
+</body></html>
