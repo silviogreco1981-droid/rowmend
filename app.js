@@ -9,6 +9,10 @@
     window.RowMendAnalytics?.track(eventName, properties);
   }
 
+  function signalSuccess(action) {
+    document.dispatchEvent(new CustomEvent('rowmend:action-success', { detail: { action } }));
+  }
+
   const sampleRows = [
     { ID: 1001, FULL_NAME: 'Mario Rossi', EMAIL: 'mario.rossi@example.com', SIGNUP_DATE: '2026-08-13', ACTIVE: true, CREDIT_LIMIT: 3500.50 },
     { ID: 1002, FULL_NAME: 'Giulia Bianchi', EMAIL: 'giulia.bianchi@example.com', SIGNUP_DATE: '2026-08-16', ACTIVE: true, CREDIT_LIMIT: 1800 },
@@ -284,7 +288,7 @@
         if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(s)) return `TO_TIMESTAMP('${s}','YYYY-MM-DD"T"HH24:MI:SS')`;
         return `TO_TIMESTAMP('${s}','YYYY-MM-DD HH24:MI:SS')`;
       }
-      return d==='sqlserver'?`CAST('${s}' AS DATETIME2)`:`CAST('${s}' AS TIMESTAMP)`;
+      return d==='sqlserver'?`CAST('${s}' AS DATETIME2)`: `TIMESTAMP '${s.replace('T',' ')}'`;
     }
     return `'${s}'`;
   }
@@ -314,6 +318,7 @@
     const stmts=rows.map(r=>`INSERT INTO ${table} (${cols.map(c=>qIdent(c.target,d)).join(', ')}) VALUES (${cols.map(c=>qValue(r[c.target],c.type,d)).join(', ')});`);
     setSql(`${sqlHeader(rows.length,state.rows.length,1000)}\n\n${stmts.join('\n')}`, 'INSERT statements');
     track('generate_insert', { dialect: d });
+    signalSuccess('output');
     maybeShowFeedback('generate_insert');
   }
 
@@ -339,6 +344,7 @@
     });
     setSql(`${sqlHeader(rows.length,state.rows.length,250)}\n\n${out.join('\n\n')}`, d==='postgres'?'UPSERT statements':'MERGE statements');
     track('generate_merge', { dialect: d });
+    signalSuccess('output');
     maybeShowFeedback('generate_merge');
   }
 
@@ -381,9 +387,10 @@
       loadRows(await readFile(file),file.name);
       const ext=(file.name.split('.').pop() || '').toLowerCase();
       track('file_loaded', { file_type: ext });
+      signalSuccess('loaded');
     } catch(e){ alert(e.message); }
   }
-  function loadDemoTracked(){ loadRows(sampleRows); track('demo_loaded'); }
+  function loadDemoTracked(){ loadRows(sampleRows); track('demo_loaded'); signalSuccess('loaded'); }
   function activateTab(name){ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name)); ['issues','mapping','schema','preview','sql'].forEach(n=>$(n+'Panel').classList.toggle('hidden',n!==name)); }
 
   function csvEscape(v){const s=String(v??'');return /[",\n\r]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;}
@@ -393,11 +400,13 @@
     state.rows.forEach((r,i)=>{if(state.rowErrors[i]?.length) rows.push([i+2,state.rowErrors[i].join(' | '),...state.headers.map(h=>r[h]??'')]);});
     downloadText('rowmend-errors.csv',rows.map(r=>r.map(csvEscape).join(',')).join('\n'),'text/csv');
     track('export_errors');
+    signalSuccess('output');
   }
   function exportClean(){
     const cols=mappedColumns(), rows=transformedRows(true), out=[[...cols.map(c=>c.target)],...rows.map(r=>cols.map(c=>r[c.target]??''))];
     downloadText('rowmend-clean.csv',out.map(r=>r.map(csvEscape).join(',')).join('\n'),'text/csv');
     track('export_clean');
+    signalSuccess('output');
     maybeShowFeedback('export_clean');
   }
 
