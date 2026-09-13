@@ -43,14 +43,14 @@
   }
 
   function markInspected() {
-    if (state.inspected) return;
+    if (state.inspected || !state.loaded) return;
     state.inspected = true;
     save();
     render();
   }
 
   function markOutput() {
-    if (state.output) return;
+    if (state.output || !state.loaded) return;
     state.output = true;
     save();
     render();
@@ -58,8 +58,15 @@
 
   function activateTab(name) {
     const tab = document.querySelector(`.tab[data-tab="${name}"]`);
-    tab?.click();
+    if (!tab || tab.disabled) return;
+    tab.click();
     document.querySelector('#results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function syncFromSuccessfulAction(event) {
+    const { action } = event.detail || {};
+    if (action === 'loaded') markLoaded();
+    if (action === 'output') markOutput();
   }
 
   loadStep?.addEventListener('click', () => {
@@ -84,16 +91,8 @@
     window.RowMendFeedback?.openFeedback('onboarding_pro');
   });
 
-  $('loadDemo')?.addEventListener('click', markLoaded);
-  $('loadDemoHero')?.addEventListener('click', markLoaded);
-  $('fileInput')?.addEventListener('change', () => {
-    if ($('fileInput')?.files?.length) markLoaded();
-  });
   document.querySelector('.tab[data-tab="mapping"]')?.addEventListener('click', markInspected);
-  $('generateInsert')?.addEventListener('click', markOutput);
-  $('generateMerge')?.addEventListener('click', markOutput);
-  $('downloadClean')?.addEventListener('click', markOutput);
-  $('downloadErrors')?.addEventListener('click', markOutput);
+  document.addEventListener('rowmend:action-success', syncFromSuccessfulAction);
 
   render();
 })();
