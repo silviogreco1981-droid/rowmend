@@ -288,7 +288,7 @@
         if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(s)) return `TO_TIMESTAMP('${s}','YYYY-MM-DD"T"HH24:MI:SS')`;
         return `TO_TIMESTAMP('${s}','YYYY-MM-DD HH24:MI:SS')`;
       }
-      return d==='sqlserver'?`CAST('${s}' AS DATETIME2)`: `TIMESTAMP '${s.replace('T',' ')}'`;
+      return d==='sqlserver'?`CAST('${s}' AS DATETIME2)`:`CAST('${s}' AS TIMESTAMP)`;
     }
     return `'${s}'`;
   }
