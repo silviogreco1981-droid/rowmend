@@ -20,6 +20,7 @@
 
   function openFeedback(source = 'manual') {
     if (!modal || !iframe) return;
+    window.RowMendAnalytics?.track('feedback_opened', { source });
     iframe.src = feedbackUrl(source);
     modal.classList.remove('hidden');
     modal.setAttribute('aria-hidden', 'false');
