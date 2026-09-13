@@ -25,33 +25,125 @@
   }
 
   function parseDelimited(text, delimiter) {
-    const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(x => x.length);
-    if (!lines.length) return [];
-    const parseLine = (line) => {
-      const out = []; let cur = ''; let quoted = false;
-      for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
-        if (ch === '"') {
-          if (quoted && line[i + 1] === '"') { cur += '"'; i++; }
-          else quoted = !quoted;
-        } else if (ch === delimiter && !quoted) { out.push(cur); cur = ''; }
-        else cur += ch;
-      }
-      out.push(cur); return out;
+    const source = text.replace(/^\uFEFF/, '');
+    const records = [];
+    let record = [];
+    let field = '';
+    let quoted = false;
+
+    const pushField = () => { record.push(field); field = ''; };
+    const pushRecord = () => {
+      pushField();
+      if (record.some(v => String(v).length > 0)) records.push(record);
+      record = [];
     };
-    const headers = parseLine(lines[0]).map(h => h.trim());
-    return lines.slice(1).map(line => {
-      const values = parseLine(line); const obj = {};
-      headers.forEach((h, i) => obj[h] = values[i] ?? ''); return obj;
+
+    for (let i = 0; i < source.length; i++) {
+      const ch = source[i];
+      if (ch === '"') {
+        if (quoted && source[i + 1] === '"') { field += '"'; i++; }
+        else quoted = !quoted;
+        continue;
+      }
+      if (ch === delimiter && !quoted) { pushField(); continue; }
+      if ((ch === '\n' || ch === '\r') && !quoted) {
+        if (ch === '\r' && source[i + 1] === '\n') i++;
+        pushRecord();
+        continue;
+      }
+      field += ch;
+    }
+
+    if (quoted) throw new Error('Malformed delimited file: an opening quote is not closed.');
+    if (field.length || record.length) pushRecord();
+    if (!records.length) return [];
+
+    const headers = records[0].map(h => String(h).trim());
+    return records.slice(1).map(values => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = values[i] ?? ''; });
+      return obj;
     });
+  }
+
+  function delimiterLabel(delimiter) {
+    if (delimiter === '\t') return 'Tab';
+    if (delimiter === ',') return 'Comma (,)';
+    if (delimiter === ';') return 'Semicolon (;)';
+    if (delimiter === '|') return 'Pipe (|)';
+    return `Custom (${delimiter})`;
+  }
+
+  function detectDelimiter(text) {
+    const source = text.replace(/^\uFEFF/, '');
+    const candidates = [',', ';', '\t', '|'];
+    const stats = candidates.map(delimiter => ({ delimiter, counts: [], current: 0, quoted: false, records: 0 }));
+
+    for (let i = 0; i < source.length; i++) {
+      const ch = source[i];
+      stats.forEach(s => {
+        if (ch === '"') {
+          if (s.quoted && source[i + 1] === '"') return;
+          s.quoted = !s.quoted;
+          return;
+        }
+        if (ch === s.delimiter && !s.quoted) s.current++;
+        if ((ch === '\n' || ch === '\r') && !s.quoted) {
+          if (ch === '\r' && source[i + 1] === '\n') return;
+          if (s.current > 0 || s.counts.length > 0) s.counts.push(s.current);
+          s.current = 0;
+          s.records++;
+        }
+      });
+      if (stats[0].records >= 8) break;
+    }
+    stats.forEach(s => {
+      if (s.current > 0) s.counts.push(s.current);
+    });
+
+    const scored = stats.map(s => {
+      const nonZero = s.counts.filter(n => n > 0);
+      if (!nonZero.length) return { delimiter: s.delimiter, score: -1 };
+      const frequency = new Map();
+      nonZero.forEach(n => frequency.set(n, (frequency.get(n) || 0) + 1));
+      const [mode, matches] = [...frequency.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0];
+      const consistency = matches / nonZero.length;
+      return { delimiter: s.delimiter, score: consistency * 100 + Math.min(mode, 20) + nonZero.length };
+    }).sort((a, b) => b.score - a.score);
+
+    return scored[0].score < 0 ? ',' : scored[0].delimiter;
+  }
+
+  function selectedDelimiter(text, ext) {
+    const mode = $('delimiterMode')?.value || 'auto';
+    if (mode === 'custom') {
+      const custom = $('customDelimiter')?.value || '';
+      if (!custom) throw new Error('Enter a custom delimiter first.');
+      if (["\n", "\r"].includes(custom)) throw new Error('The custom delimiter cannot be a line break.');
+      return custom;
+    }
+    if (mode === 'comma') return ',';
+    if (mode === 'semicolon') return ';';
+    if (mode === 'tab') return '\t';
+    if (mode === 'pipe') return '|';
+    if (ext === 'tsv') return '\t';
+    return detectDelimiter(text);
   }
 
   async function readFile(file) {
     const ext = file.name.split('.').pop().toLowerCase();
-    if (ext === 'csv' || ext === 'tsv') return parseDelimited(await file.text(), ext === 'tsv' ? '\t' : ',');
+    if (ext === 'csv' || ext === 'tsv') {
+      const text = await file.text();
+      const delimiter = selectedDelimiter(text, ext);
+      const label = $('detectedDelimiter');
+      if (label) label.textContent = `Using: ${delimiterLabel(delimiter)}`;
+      return parseDelimited(text, delimiter);
+    }
     if ((ext === 'xlsx' || ext === 'xls') && window.XLSX) {
       const buf = await file.arrayBuffer();
       const wb = XLSX.read(buf, { type: 'array', cellDates: false });
+      const label = $('detectedDelimiter');
+      if (label) label.textContent = 'Delimiter not used for Excel files';
       return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
     }
     if (ext === 'xlsx' || ext === 'xls') throw new Error('Excel parser is still loading. Please retry in a moment.');
@@ -166,7 +258,7 @@
     const invalid = state.rowErrors.filter(e=>e.length).length;
     const excluded = $('includeInvalidSql')?.checked ? 0 : invalid;
     const capped = generated < Math.max(0,total-excluded) ? `\n-- Output capped at ${cap} rows for browser responsiveness` : '';
-    return `-- Generated by RowMend MVP 0.2.1\n-- ${generated} SQL row${generated===1?'':'s'} generated\n-- ${excluded} invalid row${excluded===1?'':'s'} excluded by default${capped}`;
+    return `-- Generated by RowMend MVP 0.2.2\n-- ${generated} SQL row${generated===1?'':'s'} generated\n-- ${excluded} invalid row${excluded===1?'':'s'} excluded by default${capped}`;
   }
 
   function generateInsert() {
@@ -218,7 +310,13 @@
   }
 
   function render() { $('emptyState').classList.add('hidden'); $('results').classList.remove('hidden'); renderMapping(); renderDerived(); refreshProfiles(); }
-  function loadRows(rows,name='sample.csv'){ state.rows=normalizeRows(rows); state.headers=state.rows.length?Object.keys(state.rows[0]):[]; state.fileName=name; state.schema=inferSchema(state.rows,state.headers); state.config=defaultConfig(state.schema); state.sql=''; state.rowErrors=[]; $('sqlOutput').textContent='Generate SQL to see it here.'; render(); }
+
+  function loadRows(rows,name='sample.csv'){
+    state.rows=normalizeRows(rows); state.headers=state.rows.length?Object.keys(state.rows[0]):[]; state.fileName=name;
+    state.schema=inferSchema(state.rows,state.headers); state.config=defaultConfig(state.schema); state.sql=''; state.rowErrors=[];
+    $('sqlOutput').textContent='Generate SQL to see it here.'; render();
+  }
+
   async function onFile(file){ try { loadRows(await readFile(file),file.name); } catch(e){ alert(e.message); } }
   function activateTab(name){ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name)); ['issues','mapping','schema','preview','sql'].forEach(n=>$(n+'Panel').classList.toggle('hidden',n!==name)); }
 
@@ -241,6 +339,10 @@
   $('loadDemo').addEventListener('click',()=>loadRows(sampleRows)); $('loadDemoHero').addEventListener('click',()=>{loadRows(sampleRows);location.hash='tool'});
   $('generateInsert').addEventListener('click',generateInsert); $('generateMerge').addEventListener('click',generateMerge);
   $('dialect').addEventListener('change',()=>{if(state.rows.length)renderDerived();});
+  $('delimiterMode')?.addEventListener('change',()=>{
+    const custom = $('customDelimiter');
+    if (custom) custom.classList.toggle('hidden', $('delimiterMode').value !== 'custom');
+  });
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>activateTab(b.dataset.tab)));
   $('copySql').addEventListener('click',async()=>{if(!state.sql)return;await navigator.clipboard.writeText(state.sql);$('copySql').textContent='Copied';setTimeout(()=>$('copySql').textContent='Copy',1200);});
   $('downloadSql').addEventListener('click',()=>{if(state.sql)downloadText('rowmend.sql',state.sql,'text/sql');});
