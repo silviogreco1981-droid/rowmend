@@ -1,70 +1,138 @@
-# RowMend MVP 0.1
+# RowMend
 
-A zero-backend, local-first MVP for CSV / Excel validation and SQL generation.
+**Validate CSV and Excel files before they reach your database.**
 
-## Product hypothesis
+RowMend is a local-first browser tool for checking import files, spotting data-quality problems, mapping columns, applying validation rules, exporting clean/error CSVs, and generating safe SQL for Oracle, SQL Server, and PostgreSQL.
 
-Developers and operations teams frequently receive spreadsheets that must be imported into databases. They need to discover bad data before running the import and want reusable SQL for Oracle, SQL Server and PostgreSQL.
+**Try it:** https://rowmend.netlify.app
 
-The MVP tests the smallest useful workflow:
+## Why RowMend
 
-1. Load CSV / TSV / XLSX / XLS locally.
-2. Infer a simple schema.
-3. Surface basic data-quality issues.
-4. Preview rows.
-5. Generate INSERT or MERGE / UPSERT SQL.
+Import problems are usually discovered too late: after a spreadsheet reaches a database, ETL job, ERP/CRM import, or migration script. RowMend moves that check earlier in the workflow.
 
-No application backend, account system or database is required.
+It helps you answer questions like:
+
+- Which rows will fail validation?
+- Are required values missing?
+- Do email, date, number, or uniqueness rules look wrong?
+- Are source columns mapped to the intended target columns?
+- Which rows are safe to export or turn into SQL?
+- Can I generate INSERT or MERGE / UPSERT statements without including invalid rows by default?
+
+## What it does
+
+- Load **CSV, TSV, XLSX, or XLS** files.
+- Parse and inspect data **locally in your browser**.
+- Infer a simple schema and surface data-quality issues.
+- Map source columns to target columns.
+- Apply validation rules such as required, unique, email, and type checks.
+- Preview valid and invalid rows.
+- Export **clean CSV** and **error CSV** files.
+- Save reusable mapping profiles in local browser storage.
+- Generate SQL for:
+  - Oracle
+  - SQL Server
+  - PostgreSQL
+- Generate INSERT plus MERGE / UPSERT workflows.
+- Exclude invalid rows from generated SQL by default.
+
+## Privacy-first architecture
+
+Your spreadsheet is not uploaded to a RowMend application backend.
+
+Parsing, validation, mapping, local profile storage, and SQL generation happen in the browser. The current MVP has no application account system and no backend database.
+
+Minimal product analytics are used to understand whether people reach useful actions such as loading a file, generating SQL, exporting cleaned data, or saving a profile. RowMend does not intentionally send uploaded file contents, filenames, column names, generated SQL, target table names, validation results, profile names, or data values to analytics.
+
+See the live privacy notice for details.
+
+## Quick start
+
+1. Open https://rowmend.netlify.app
+2. Drop a CSV/Excel file, or load the sample dataset.
+3. Review **Issues** and **Mapping & Rules**.
+4. Choose your target SQL dialect and key column if needed.
+5. Export clean/error data or generate INSERT / MERGE / UPSERT SQL.
+
+## Example use cases
+
+RowMend is useful when you regularly prepare or troubleshoot import files for:
+
+- database migrations;
+- ERP / CRM imports;
+- ETL and data-loading jobs;
+- customer, supplier, product, or master-data loads;
+- one-off CSV cleanup before SQL execution;
+- pre-flight validation before handing data to another team or system.
+
+## Who it is for
+
+- Developers
+- DBAs
+- Data analysts
+- Data engineers
+- ERP / CRM consultants
+- Operations teams working with recurring CSV / Excel imports
+
+## Safe-by-default SQL
+
+Generated SQL is intended to reduce repetitive import work, not to replace database review.
+
+By default, rows that fail configured validation rules are excluded from generated SQL. Always review and test generated statements before executing them against production systems.
+
+Current browser caps keep the MVP responsive:
+
+- INSERT generation: up to 1,000 rows
+- MERGE / UPSERT generation: up to 250 rows
 
 ## Run locally
 
-Because this is a static site, any static web server works.
+RowMend is a static site. Any local static web server works.
 
-Python:
+For example:
 
 ```bash
 python -m http.server 8080
 ```
 
-Then open http://localhost:8080.
+Then open:
 
-## Free deployment: Cloudflare Pages Direct Upload
+```text
+http://localhost:8080
+```
 
-The current Cloudflare Pages documentation supports direct upload of prebuilt static assets. Create a Pages project in the Cloudflare dashboard and upload the contents of this folder. `index.html` must remain at the project root.
+## Current validation phase
 
-A `*.pages.dev` hostname is issued after deployment. Add a custom domain only after validation if you want to keep initial cash cost at zero.
+RowMend is being tested as a free utility before deciding which workflows are worth turning into paid Pro / Team features.
 
-## What to validate before building Pro
+The key product question is not simply whether people can generate SQL. It is whether recurring import work creates enough pain around **repeatability, collaboration, governance, auditability, and automation** to justify a paid workflow.
 
-Do not add authentication or billing yet. Measure:
+Potential future Pro / Team capabilities include:
 
-- visitors who load a file;
-- files successfully parsed;
-- INSERT generation clicks;
-- MERGE generation clicks;
-- repeat visitors;
-- clicks on “I'd use Pro”;
-- requests for saved mappings / rules / larger files / direct DB connectivity.
+- shared reusable mapping and validation profiles;
+- richer validation rules and schema contracts;
+- batch processing;
+- audit and exportable quality reports;
+- reusable import recipes;
+- CLI / API / CI integration;
+- centralized team workflows and governance.
 
-The MVP intentionally records Pro interest only in localStorage. For real validation, replace that button with a privacy-compliant waitlist form or an email link.
+If you use RowMend and one of those would materially help your workflow, use the in-product feedback form.
 
-## Next product increments
+## Feedback
 
-1. Editable schema and target-column mapping.
-2. User-defined validation rules (required, regex, ranges, allowed values).
-3. Downloadable error report and cleaned CSV.
-4. Reusable mapping profiles stored locally first.
-5. PII detection / anonymization prototype.
-6. Only after demand is proven: accounts, sync, team features, billing.
+Real import cases are more useful than generic feature requests.
 
-## Branding note
-
-“RowMend” is a working product name. Before paying for a domain or commercializing it, perform formal trademark/domain clearance in target markets.
+If RowMend saves you time, breaks on a file shape you commonly use, or is missing something that would make it part of a recurring workflow, please send feedback through the app.
 
 ## Important MVP limitations
 
-- CSV parser handles common quoted CSV but is not a full RFC 4180 implementation for multiline quoted fields.
-- SQL generation is capped (INSERT: 1,000 rows; MERGE/UPSERT: 250 rows) to keep browser performance predictable.
-- Date inference currently favors ISO-like dates.
+- The CSV parser handles common quoted CSV but is not a complete RFC 4180 implementation for every edge case.
+- Date inference is intentionally conservative and favors ISO-like formats.
+- Very large files may be limited by browser memory and responsiveness.
 - Generated SQL must be reviewed and tested before use.
-- Legal pages are MVP drafts, not legal advice.
+- Legal pages are MVP drafts and are not legal advice.
+
+## Branding note
+
+**RowMend** is currently a working product name. Formal trademark/domain clearance should be completed before material commercial investment in the brand.
