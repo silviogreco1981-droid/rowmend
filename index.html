@@ -1,24 +1,148 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RowMend - CSV data quality and SQL generator</title>
-<link rel="stylesheet" href="styles.css">
-<script defer src="app.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RowMend — Validate CSV & Excel before import</title>
+  <meta name="description" content="Validate CSV and Excel files locally in your browser, detect data quality issues, and generate SQL for Oracle, SQL Server and PostgreSQL. Your data never leaves your device." />
+  <meta name="robots" content="index,follow" />
+  <meta property="og:title" content="RowMend — Validate data before import" />
+  <meta property="og:description" content="Browser-only CSV/Excel validation and SQL generation. No uploads, no signup." />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script defer src="app.js"></script>
 </head>
 <body>
-<header class="topbar shell"><a class="brand" href="#top">RowMend</a><span>Local-first data tooling</span></header>
-<main id="top">
-<section class="hero shell"><p>LOCAL-FIRST DATA TOOLING</p><h1>Fix bad data before it reaches your database.</h1><p class="lede">Validate CSV data, inspect data quality, and generate SQL for Oracle, SQL Server and PostgreSQL in your browser.</p><p><a class="btn primary" href="#tool">Try it free</a> <button class="btn" id="loadDemoHero" type="button">Load sample data</button></p><p>No signup. No file upload. No backend.</p></section>
-<section class="tool-section" id="tool"><div class="shell"><h2>Load data. See what will break.</h2><div class="tool-grid"><aside class="control-card">
-<label class="dropzone" id="dropzone" for="fileInput"><strong>Choose a CSV file</strong></label><input id="fileInput" type="file" accept=".csv,.tsv" hidden>
-<button class="btn" id="loadDemo" type="button">Use sample dataset</button>
-<label class="field">Database<select id="dialect"><option value="oracle">Oracle</option><option value="sqlserver">SQL Server</option><option value="postgres">PostgreSQL</option></select></label>
-<label class="field">Target table<input id="tableName" value="CUSTOMERS"></label>
-<label class="field">Key column<select id="keyColumn"></select></label>
-<button class="btn primary" id="generateInsert" disabled>Generate INSERT</button><button class="btn" id="generateMerge" disabled>Generate MERGE or UPSERT</button>
-</aside><section class="results-card"><div id="emptyState"><strong>No data loaded yet.</strong><p>Load the sample dataset or choose a CSV file.</p></div><div id="results" class="hidden"><div class="metrics" id="metrics"></div><div class="tabs"><button class="tab active" data-tab="issues">Issues</button><button class="tab" data-tab="schema">Schema</button><button class="tab" data-tab="preview">Preview</button><button class="tab" data-tab="sql">SQL</button></div><div class="panel" id="issuesPanel"></div><div class="panel hidden" id="schemaPanel"></div><div class="panel hidden" id="previewPanel"></div><div class="panel hidden" id="sqlPanel"><p><strong id="sqlLabel">Generated SQL</strong> <button id="copySql">Copy</button> <button id="downloadSql">Download</button></p><pre id="sqlOutput">Generate SQL to see it here.</pre></div></div></section></div></div></section>
-<section class="content-section shell"><h2>A safer import workflow.</h2><p>RowMend identifies obvious data-quality problems, infers a simple schema and produces reusable SQL without requiring an account.</p><button class="btn" id="proInterest">I'd use RowMend Pro</button><p id="interestNote"></p></section>
-</main><footer class="footer"><div class="shell">RowMend MVP 0.1</div></footer>
-</body></html>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="RowMend home">
+      <span class="brand-mark">R</span><span>RowMend</span>
+    </a>
+    <nav>
+      <a href="#tool">Tool</a>
+      <a href="#how">How it works</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#pricing">Pro</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero shell">
+      <div class="hero-copy">
+        <div class="eyebrow">LOCAL-FIRST DATA TOOLING</div>
+        <h1>Fix bad data <span>before</span> it reaches your database.</h1>
+        <p class="lede">Validate CSV and Excel files, inspect data quality, and generate SQL for Oracle, SQL Server and PostgreSQL — entirely in your browser.</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#tool">Try it free</a>
+          <button class="btn ghost" id="loadDemoHero" type="button">Load sample data</button>
+        </div>
+        <div class="trust-row">
+          <span>✓ No signup</span><span>✓ No file upload</span><span>✓ No backend</span>
+        </div>
+      </div>
+      <div class="hero-card" aria-label="Product preview">
+        <div class="window-head"><i></i><i></i><i></i><span>customer_import.xlsx</span></div>
+        <div class="score-row"><strong>87</strong><span>Data quality score</span><em>3 issues found</em></div>
+        <div class="issue good">✓ 1,248 rows parsed</div>
+        <div class="issue warn">! 2 invalid email addresses</div>
+        <div class="issue warn">! 1 missing required value</div>
+        <div class="issue good">✓ SQL types inferred</div>
+        <pre>MERGE INTO CUSTOMERS t
+USING (...) s
+ON (t.ID = s.ID)
+WHEN MATCHED THEN UPDATE ...</pre>
+      </div>
+    </section>
+
+    <section class="tool-section" id="tool">
+      <div class="shell">
+        <div class="section-heading">
+          <div><div class="eyebrow">IMPORT CHECKER</div><h2>Drop a file. See what will break.</h2></div>
+          <span class="local-badge">● processed locally</span>
+        </div>
+
+        <div class="tool-grid">
+          <aside class="control-card">
+            <label class="dropzone" id="dropzone" for="fileInput">
+              <input id="fileInput" type="file" accept=".csv,.tsv,.xlsx,.xls" hidden />
+              <span class="upload-icon">⇧</span>
+              <strong>Drop CSV or Excel here</strong>
+              <small>or click to choose a file</small>
+              <small class="muted">CSV · TSV · XLSX · XLS</small>
+            </label>
+            <button class="text-btn" id="loadDemo" type="button">Use sample dataset instead</button>
+
+            <div class="field-group">
+              <label for="dialect">SQL dialect</label>
+              <select id="dialect">
+                <option value="oracle">Oracle</option>
+                <option value="sqlserver">SQL Server</option>
+                <option value="postgres">PostgreSQL</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="tableName">Target table</label>
+              <input id="tableName" value="CUSTOMERS" spellcheck="false" />
+            </div>
+            <div class="field-group">
+              <label for="keyColumn">Key column for MERGE</label>
+              <select id="keyColumn"><option value="">Load a file first</option></select>
+            </div>
+            <div class="button-stack">
+              <button class="btn primary full" id="generateInsert" type="button" disabled>Generate INSERT</button>
+              <button class="btn secondary full" id="generateMerge" type="button" disabled>Generate MERGE / UPSERT</button>
+            </div>
+          </aside>
+
+          <div class="workspace">
+            <div id="emptyState" class="empty-state">
+              <div class="empty-glyph">↳</div>
+              <h3>Your analysis will appear here</h3>
+              <p>Load a CSV or Excel file. RowMend inspects it locally and never sends the file to a server.</p>
+            </div>
+
+            <div id="results" class="results hidden">
+              <div class="metrics" id="metrics"></div>
+              <div class="tabs" role="tablist">
+                <button class="tab active" data-tab="issues">Issues</button>
+                <button class="tab" data-tab="schema">Schema</button>
+                <button class="tab" data-tab="preview">Preview</button>
+                <button class="tab" data-tab="sql">SQL</button>
+              </div>
+              <div class="tab-panel" id="issuesPanel"></div>
+              <div class="tab-panel hidden" id="schemaPanel"></div>
+              <div class="tab-panel hidden" id="previewPanel"></div>
+              <div class="tab-panel hidden" id="sqlPanel">
+                <div class="sql-toolbar">
+                  <span id="sqlLabel">Generated SQL</span>
+                  <div><button class="mini-btn" id="copySql" type="button">Copy</button><button class="mini-btn" id="downloadSql" type="button">Download .sql</button></div>
+                </div>
+                <pre class="sql-output" id="sqlOutput">Generate SQL to see it here.</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="browser-note">Large files are analyzed in your browser. For this MVP, preview and SQL generation are intentionally capped for responsiveness.</p>
+      </div>
+    </section>
+
+    <section class="shell three" id="how">
+      <article><span>01</span><h3>Load</h3><p>Open CSV, TSV or Excel. Files stay on your device.</p></article>
+      <article><span>02</span><h3>Inspect</h3><p>Detect missing values, type inconsistencies, duplicate rows and suspicious email fields.</p></article>
+      <article><span>03</span><h3>Generate</h3><p>Create INSERT or upsert SQL for Oracle, SQL Server and PostgreSQL.</p></article>
+    </section>
+
+    <section class="privacy shell" id="privacy">
+      <div><div class="eyebrow">PRIVACY BY ARCHITECTURE</div><h2>Your spreadsheet is not our dataset.</h2></div>
+      <div><p>RowMend is designed as a local-first tool. Parsing, validation and SQL generation happen in the browser. This MVP has no application backend and no account system.</p><p class="muted">That makes it suitable for evaluating the workflow before adding any cloud features later.</p></div>
+    </section>
+
+    <section class="pricing shell" id="pricing">
+      <div class="pricing-copy"><div class="eyebrow">NEXT: ROWMEND PRO</div><h2>Turn recurring imports into a saved workflow.</h2><p>The free tool validates one file at a time. The planned Pro version will save mapping profiles, validation rules and reusable import configurations.</p></div>
+      <div class="pricing-card"><div><strong>Free</strong><span>now</span></div><ul><li>CSV & Excel analysis</li><li>Data quality checks</li><li>SQL generation</li><li>Oracle / SQL Server / PostgreSQL</li></ul><button class="btn primary full" id="proInterest" type="button">I’d use Pro</button><small id="interestNote">No payment. This just records interest locally in this MVP.</small></div>
+    </section>
+  </main>
+
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Working product name · MVP 0.1</p><div><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div></footer>
+</body>
+</html>
