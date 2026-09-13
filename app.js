@@ -25,24 +25,58 @@
   }
 
   function parseDelimited(text, delimiter) {
-    const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(x => x.length);
-    if (!lines.length) return [];
-    const parseLine = (line) => {
-      const out = []; let cur = ''; let quoted = false;
-      for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
-        if (ch === '"') {
-          if (quoted && line[i + 1] === '"') { cur += '"'; i++; }
-          else quoted = !quoted;
-        } else if (ch === delimiter && !quoted) { out.push(cur); cur = ''; }
-        else cur += ch;
-      }
-      out.push(cur); return out;
+    const source = text.replace(/^\uFEFF/, '');
+    const records = [];
+    let record = [];
+    let field = '';
+    let quoted = false;
+
+    const pushField = () => {
+      record.push(field);
+      field = '';
     };
-    const headers = parseLine(lines[0]).map(h => h.trim());
-    return lines.slice(1).map(line => {
-      const values = parseLine(line); const obj = {};
-      headers.forEach((h, i) => obj[h] = values[i] ?? ''); return obj;
+    const pushRecord = () => {
+      pushField();
+      if (record.some(v => String(v).length > 0)) records.push(record);
+      record = [];
+    };
+
+    for (let i = 0; i < source.length; i++) {
+      const ch = source[i];
+
+      if (ch === '"') {
+        if (quoted && source[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          quoted = !quoted;
+        }
+        continue;
+      }
+
+      if (ch === delimiter && !quoted) {
+        pushField();
+        continue;
+      }
+
+      if ((ch === '\n' || ch === '\r') && !quoted) {
+        if (ch === '\r' && source[i + 1] === '\n') i++;
+        pushRecord();
+        continue;
+      }
+
+      field += ch;
+    }
+
+    if (quoted) throw new Error('Malformed delimited file: an opening quote is not closed.');
+    if (field.length || record.length) pushRecord();
+    if (!records.length) return [];
+
+    const headers = records[0].map(h => String(h).trim());
+    return records.slice(1).map(values => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = values[i] ?? ''; });
+      return obj;
     });
   }
 
@@ -218,7 +252,13 @@
   }
 
   function render() { $('emptyState').classList.add('hidden'); $('results').classList.remove('hidden'); renderMapping(); renderDerived(); refreshProfiles(); }
-  function loadRows(rows,name='sample.csv'){ state.rows=normalizeRows(rows); state.headers=state.rows.length?Object.keys(state.rows[0]):[]; state.fileName=name; state.schema=inferSchema(state.rows,state.headers); state.config=defaultConfig(state.schema); state.sql=''; state.rowErrors=[]; $('sqlOutput').textContent='Generate SQL to see it here.'; render(); }
+
+  function loadRows(rows,name='sample.csv'){
+    state.rows=normalizeRows(rows); state.headers=state.rows.length?Object.keys(state.rows[0]):[]; state.fileName=name;
+    state.schema=inferSchema(state.rows,state.headers); state.config=defaultConfig(state.schema); state.sql=''; state.rowErrors=[];
+    $('sqlOutput').textContent='Generate SQL to see it here.'; render();
+  }
+
   async function onFile(file){ try { loadRows(await readFile(file),file.name); } catch(e){ alert(e.message); } }
   function activateTab(name){ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name)); ['issues','mapping','schema','preview','sql'].forEach(n=>$(n+'Panel').classList.toggle('hidden',n!==name)); }
 
