@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RowMend — Validate CSV & Excel before import</title>
-  <meta name="description" content="Validate CSV and Excel files locally in your browser, detect data quality issues, and generate SQL for Oracle, SQL Server and PostgreSQL. Your data never leaves your device." />
+  <meta name="description" content="Validate CSV and Excel files locally in your browser, detect data quality issues, map columns, apply validation rules, and generate SQL for Oracle, SQL Server and PostgreSQL. Your data never leaves your device." />
   <meta name="robots" content="index,follow" />
   <meta property="og:title" content="RowMend — Validate data before import" />
-  <meta property="og:description" content="Browser-only CSV/Excel validation and SQL generation. No uploads, no signup." />
+  <meta property="og:description" content="Browser-only CSV/Excel validation, mapping and SQL generation. No uploads, no signup." />
   <meta property="og:type" content="website" />
   <link rel="stylesheet" href="styles.css" />
   <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -31,7 +31,7 @@
       <div class="hero-copy">
         <div class="eyebrow">LOCAL-FIRST DATA TOOLING</div>
         <h1>Fix bad data <span>before</span> it reaches your database.</h1>
-        <p class="lede">Validate CSV and Excel files, inspect data quality, and generate SQL for Oracle, SQL Server and PostgreSQL — entirely in your browser.</p>
+        <p class="lede">Validate CSV and Excel files, map columns, apply rules, and generate SQL for Oracle, SQL Server and PostgreSQL — entirely in your browser.</p>
         <div class="hero-actions">
           <a class="btn primary" href="#tool">Try it free</a>
           <button class="btn ghost" id="loadDemoHero" type="button">Load sample data</button>
@@ -57,7 +57,7 @@ WHEN MATCHED THEN UPDATE ...</pre>
     <section class="tool-section" id="tool">
       <div class="shell">
         <div class="section-heading">
-          <div><div class="eyebrow">IMPORT CHECKER</div><h2>Drop a file. See what will break.</h2></div>
+          <div><div class="eyebrow">IMPORT CHECKER · V0.2</div><h2>Drop a file. See what will break.</h2></div>
           <span class="local-badge">● processed locally</span>
         </div>
 
@@ -105,11 +105,28 @@ WHEN MATCHED THEN UPDATE ...</pre>
               <div class="metrics" id="metrics"></div>
               <div class="tabs" role="tablist">
                 <button class="tab active" data-tab="issues">Issues</button>
+                <button class="tab" data-tab="mapping">Mapping & Rules</button>
                 <button class="tab" data-tab="schema">Schema</button>
                 <button class="tab" data-tab="preview">Preview</button>
                 <button class="tab" data-tab="sql">SQL</button>
               </div>
               <div class="tab-panel" id="issuesPanel"></div>
+              <div class="tab-panel hidden" id="mappingPanel">
+                <div class="mapping-toolbar">
+                  <div class="profile-controls">
+                    <input id="profileName" placeholder="Profile name, e.g. SAP Customers" />
+                    <button class="mini-btn" id="saveProfile" type="button">Save profile</button>
+                    <select id="profileSelect"><option value="">Saved profiles</option></select>
+                    <button class="mini-btn" id="loadProfile" type="button">Load</button>
+                    <button class="mini-btn danger" id="deleteProfile" type="button">Delete</button>
+                  </div>
+                  <div class="export-controls">
+                    <button class="mini-btn" id="downloadErrors" type="button">Export errors CSV</button>
+                    <button class="mini-btn" id="downloadClean" type="button">Export clean CSV</button>
+                  </div>
+                </div>
+                <div id="mappingTable"></div>
+              </div>
               <div class="tab-panel hidden" id="schemaPanel"></div>
               <div class="tab-panel hidden" id="previewPanel"></div>
               <div class="tab-panel hidden" id="sqlPanel">
@@ -122,27 +139,27 @@ WHEN MATCHED THEN UPDATE ...</pre>
             </div>
           </div>
         </div>
-        <p class="browser-note">Large files are analyzed in your browser. For this MVP, preview and SQL generation are intentionally capped for responsiveness.</p>
+        <p class="browser-note">Large files are analyzed in your browser. Preview and SQL generation are intentionally capped for responsiveness. Mapping profiles are stored only in this browser.</p>
       </div>
     </section>
 
     <section class="shell three" id="how">
       <article><span>01</span><h3>Load</h3><p>Open CSV, TSV or Excel. Files stay on your device.</p></article>
-      <article><span>02</span><h3>Inspect</h3><p>Detect missing values, type inconsistencies, duplicate rows and suspicious email fields.</p></article>
-      <article><span>03</span><h3>Generate</h3><p>Create INSERT or upsert SQL for Oracle, SQL Server and PostgreSQL.</p></article>
+      <article><span>02</span><h3>Inspect & map</h3><p>Detect issues, rename target columns and apply validation rules before import.</p></article>
+      <article><span>03</span><h3>Export or generate</h3><p>Download clean data, export errors, or create INSERT / UPSERT SQL.</p></article>
     </section>
 
     <section class="privacy shell" id="privacy">
       <div><div class="eyebrow">PRIVACY BY ARCHITECTURE</div><h2>Your spreadsheet is not our dataset.</h2></div>
-      <div><p>RowMend is designed as a local-first tool. Parsing, validation and SQL generation happen in the browser. This MVP has no application backend and no account system.</p><p class="muted">That makes it suitable for evaluating the workflow before adding any cloud features later.</p></div>
+      <div><p>RowMend is designed as a local-first tool. Parsing, validation, mapping, profile storage and SQL generation happen in the browser. This MVP has no application backend and no account system.</p><p class="muted">Saved mapping profiles remain in local browser storage until you delete them.</p></div>
     </section>
 
     <section class="pricing shell" id="pricing">
-      <div class="pricing-copy"><div class="eyebrow">NEXT: ROWMEND PRO</div><h2>Turn recurring imports into a saved workflow.</h2><p>The free tool validates one file at a time. The planned Pro version will save mapping profiles, validation rules and reusable import configurations.</p></div>
-      <div class="pricing-card"><div><strong>Free</strong><span>now</span></div><ul><li>CSV & Excel analysis</li><li>Data quality checks</li><li>SQL generation</li><li>Oracle / SQL Server / PostgreSQL</li></ul><button class="btn primary full" id="proInterest" type="button">I’d use Pro</button><small id="interestNote">No payment. This just records interest locally in this MVP.</small></div>
+      <div class="pricing-copy"><div class="eyebrow">NEXT: ROWMEND PRO</div><h2>Turn recurring imports into a governed workflow.</h2><p>The free tool now supports local mapping profiles and configurable checks. A future Pro version can add team-shared profiles, CI/CD, audit and richer import automation.</p></div>
+      <div class="pricing-card"><div><strong>Free</strong><span>now</span></div><ul><li>CSV & Excel analysis</li><li>Configurable validation rules</li><li>Column mapping</li><li>Local saved profiles</li><li>Error / clean CSV export</li><li>SQL generation</li><li>Oracle / SQL Server / PostgreSQL</li></ul><button class="btn primary full" id="proInterest" type="button">I’d use Pro</button><small id="interestNote">No payment. This just records interest locally in this MVP.</small></div>
     </section>
   </main>
 
-  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Working product name · MVP 0.1</p><div><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div></footer>
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Working product name · MVP 0.2</p><div><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div></footer>
 </body>
 </html>
