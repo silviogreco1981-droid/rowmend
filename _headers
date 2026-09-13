@@ -2,4 +2,4 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.sheetjs.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.sheetjs.com https://cloud.umami.is; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://cloud.umami.is https://gateway.umami.is; frame-src https://tally.so; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
