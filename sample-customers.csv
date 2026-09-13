@@ -1,0 +1,6 @@
+ID,FULL_NAME,EMAIL,SIGNUP_DATE,ACTIVE,CREDIT_LIMIT
+1001,Mario Rossi,mario.rossi@example.com,2026-08-13,true,3500.50
+1002,Giulia Bianchi,giulia.bianchi@example.com,2026-08-16,true,1800
+1003,Luca Verdi,luca.verdi.example.com,2026-08-19,false,2400
+1004,Sara Neri,,2026-08-20,true,5100
+1004,Sara Neri,,not-a-date,true,5100
