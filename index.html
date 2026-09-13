@@ -40,7 +40,7 @@ WHEN MATCHED THEN UPDATE ...</pre>
     </section>
 
     <section class="tool-section" id="tool"><div class="shell">
-      <div class="section-heading"><div><div class="eyebrow">IMPORT CHECKER · V0.3.0</div><h2>Drop a file. See what will break.</h2></div><span class="local-badge">● processed locally</span></div>
+      <div class="section-heading"><div><div class="eyebrow">IMPORT CHECKER · V0.3.1</div><h2>Drop a file. See what will break.</h2></div><span class="local-badge">● processed locally</span></div>
       <div class="tool-grid">
         <aside class="control-card">
           <label class="dropzone" id="dropzone" for="fileInput"><input id="fileInput" type="file" accept=".csv,.tsv,.xlsx,.xls" hidden /><span class="upload-icon">⇧</span><strong>Drop CSV or Excel here</strong><small>or click to choose a file</small><small class="muted">CSV · TSV · XLSX · XLS</small></label>
@@ -65,13 +65,22 @@ WHEN MATCHED THEN UPDATE ...</pre>
           </div>
         </div>
       </div>
+      <div id="feedbackPrompt" class="feedback-prompt hidden" role="status"><div><strong>Did RowMend save you time?</strong><span>Your feedback helps decide what to build next.</span></div><button class="mini-btn" id="openFeedback" type="button">Give feedback</button><button class="feedback-dismiss" id="dismissFeedback" type="button" aria-label="Dismiss feedback prompt">×</button></div>
       <p class="browser-note">Large files are analyzed in your browser. Preview and SQL generation are intentionally capped for responsiveness. CSV delimiters are auto-detected by default and can be overridden manually. Invalid rows are excluded from generated SQL unless you explicitly opt in.</p>
     </div></section>
 
     <section class="shell three" id="how"><article><span>01</span><h3>Load</h3><p>Open CSV, TSV or Excel. Files stay on your device.</p></article><article><span>02</span><h3>Inspect & map</h3><p>Detect issues, rename target columns and apply validation rules before import.</p></article><article><span>03</span><h3>Export or generate</h3><p>Download clean data, export errors, or create SQL from valid rows by default.</p></article></section>
-    <section class="privacy shell" id="privacy"><div><div class="eyebrow">PRIVACY BY ARCHITECTURE</div><h2>Your spreadsheet is not our dataset.</h2></div><div><p>RowMend is designed as a local-first tool. Parsing, validation, mapping, profile storage and SQL generation happen in the browser. This MVP has no application backend and no account system.</p><p class="muted">Saved mapping profiles remain in local browser storage until you delete them.</p></div></section>
-    <section class="pricing shell" id="pricing"><div class="pricing-copy"><div class="eyebrow">NEXT: ROWMEND PRO</div><h2>Turn recurring imports into a governed workflow.</h2><p>The free tool supports local mapping profiles and validation. A future Pro version can add team-shared profiles, CI/CD checks, audit trails and richer automation.</p></div><div class="pricing-card"><div><strong>Free</strong><span>now</span></div><ul><li>CSV & Excel analysis</li><li>Automatic/custom CSV delimiters</li><li>Configurable validation rules</li><li>Column mapping</li><li>Local saved profiles</li><li>Error / clean CSV export</li><li>Safe-by-default SQL generation</li><li>Oracle / SQL Server / PostgreSQL</li></ul><button class="btn primary full" id="proInterest" type="button">I’d use Pro</button><small id="interestNote">No payment. This just records interest locally in this MVP.</small></div></section>
+    <section class="privacy shell" id="privacy"><div><div class="eyebrow">PRIVACY BY ARCHITECTURE</div><h2>Your spreadsheet is not our dataset.</h2></div><div><p>RowMend is designed as a local-first tool. Parsing, validation, mapping, profile storage and SQL generation happen in the browser. This MVP has no application backend and no account system.</p><p class="muted">Saved mapping profiles remain in local browser storage until you delete them. Voluntary product feedback is collected separately through Tally and never includes your uploaded file, spreadsheet contents, column names, generated SQL, target table names or validation results.</p></div></section>
+    <section class="pricing shell" id="pricing"><div class="pricing-copy"><div class="eyebrow">NEXT: ROWMEND PRO</div><h2>Turn recurring imports into a governed workflow.</h2><p>The free tool supports local mapping profiles and validation. A future Pro version can add team-shared profiles, CI/CD checks, audit trails and richer automation.</p></div><div class="pricing-card"><div><strong>Free</strong><span>now</span></div><ul><li>CSV & Excel analysis</li><li>Automatic/custom CSV delimiters</li><li>Configurable validation rules</li><li>Column mapping</li><li>Local saved profiles</li><li>Error / clean CSV export</li><li>Safe-by-default SQL generation</li><li>Oracle / SQL Server / PostgreSQL</li></ul><button class="btn primary full" id="proInterest" type="button">Help shape RowMend Pro</button><small id="interestNote">Short voluntary survey. No file or dataset content is sent.</small></div></section>
   </main>
-  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Working product name · MVP 0.3.0</p><div><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div></footer>
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Working product name · MVP 0.3.1</p><div><button class="footer-feedback" id="footerFeedback" type="button">Give feedback</button><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div></footer>
+
+  <div class="feedback-modal hidden" id="feedbackModal" aria-hidden="true">
+    <div class="feedback-backdrop" data-close-feedback></div>
+    <div class="feedback-dialog" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
+      <div class="feedback-head"><div><span class="eyebrow">ROWMEND FEEDBACK</span><h2 id="feedbackTitle">Help us build what matters</h2></div><button class="feedback-close" id="closeFeedback" type="button" aria-label="Close feedback form">×</button></div>
+      <iframe id="feedbackFrame" title="RowMend feedback form" loading="lazy"></iframe>
+    </div>
+  </div>
 </body>
 </html>
