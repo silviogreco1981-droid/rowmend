@@ -77,6 +77,35 @@ assert.deepStrictEqual(
   [{ ID: '1', NOTE: 'alpha\tbeta' }]
 );
 
+assert.deepStrictEqual(
+  parseDelimited('\uFEFFID,NAME,CITY\n1,Giovanni D’Angelo,Città di Castello\n2,José Álvarez,São Paulo\n', ','),
+  [
+    { ID: '1', NAME: 'Giovanni D’Angelo', CITY: 'Città di Castello' },
+    { ID: '2', NAME: 'José Álvarez', CITY: 'São Paulo' }
+  ]
+);
+
+assert.deepStrictEqual(
+  parseDelimited('ID,NOTE\n1,"Prezzo: 12,50 € — sconto 20%"\n2,"Simboli: @ # & / \\ ( ) [ ] { } + = _"\n', ','),
+  [
+    { ID: '1', NOTE: 'Prezzo: 12,50 € — sconto 20%' },
+    { ID: '2', NOTE: 'Simboli: @ # & / \\ ( ) [ ] { } + = _' }
+  ]
+);
+
+assert.deepStrictEqual(
+  parseDelimited('ID,TEXT\n1,"Emoji 🚀 ✅ ❤️"\n2,"中文测试 — العربية — кириллица"\n', ','),
+  [
+    { ID: '1', TEXT: 'Emoji 🚀 ✅ ❤️' },
+    { ID: '2', TEXT: '中文测试 — العربية — кириллица' }
+  ]
+);
+
+assert.deepStrictEqual(
+  parseDelimited('ID,NOTE\n1,"Riga con apostrofo: l\'utente O\'Connor"\n', ','),
+  [{ ID: '1', NOTE: "Riga con apostrofo: l'utente O'Connor" }]
+);
+
 assert.throws(
   () => parseDelimited('ID,NOTE\n1,"not closed\n', ','),
   /opening quote is not closed/
