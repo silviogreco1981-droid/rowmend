@@ -20,18 +20,18 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 
-  function setStep(el, done) {
+  function setStep(el, done, active) {
     if (!el) return;
     el.classList.toggle('done', done);
-    el.classList.toggle('active', !done);
+    el.classList.toggle('active', active);
   }
 
   function render() {
     if (card) card.classList.toggle('hidden', state.hidden);
     if (show) show.classList.toggle('hidden', !state.hidden);
-    setStep(loadStep, state.loaded);
-    setStep(inspectStep, state.inspected);
-    setStep(outputStep, state.output);
+    setStep(loadStep, state.loaded, !state.loaded);
+    setStep(inspectStep, state.inspected, state.loaded && !state.inspected);
+    setStep(outputStep, state.output, state.loaded && state.inspected && !state.output);
     if (pro) pro.classList.toggle('hidden', !state.output);
   }
 
