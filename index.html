@@ -9,6 +9,8 @@
   <meta property="og:title" content="RowMend — Validate data before import" />
   <meta property="og:description" content="Browser-only CSV/Excel validation, mapping and SQL generation. No uploads, no signup." />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://rowmend.netlify.app/" />
+  <link rel="canonical" href="https://rowmend.netlify.app/" />
   <link rel="stylesheet" href="styles.css" />
   <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script defer src="analytics.js"></script>
@@ -85,6 +87,7 @@ WHEN MATCHED THEN UPDATE ...</pre>
     </div></section>
 
     <section class="shell three" id="how"><article><span>01</span><h3>Load</h3><p>Open CSV, TSV or Excel. Files stay on your device.</p></article><article><span>02</span><h3>Inspect & map</h3><p>Detect issues, rename target columns and apply validation rules before import.</p></article><article><span>03</span><h3>Export or generate</h3><p>Download clean data, export errors, or create SQL from valid rows by default.</p></article></section>
+    <section class="privacy shell seo-intro" aria-labelledby="validate-before-import"><div><div class="eyebrow">DATABASE IMPORT PRE-FLIGHT</div><h2 id="validate-before-import">Validate before you import</h2></div><div><p>RowMend helps you validate CSV and Excel data before importing it into a database. Detect missing required values, duplicate keys, invalid data and mapping issues before they reach your target system.</p><p class="muted">Map source columns, apply validation rules, separate valid and invalid rows, and generate SQL for Oracle, SQL Server and PostgreSQL — directly in your browser.</p></div></section>
     <section class="privacy shell" id="privacy"><div><div class="eyebrow">PRIVACY BY ARCHITECTURE</div><h2>Your spreadsheet is not our dataset.</h2></div><div><p>RowMend is designed as a local-first tool. Parsing, validation, mapping, profile storage and SQL generation happen in the browser. This MVP has no application backend and no account system.</p><p class="muted">Saved mapping profiles remain in local browser storage until you delete them. Voluntary product feedback is collected separately through Tally and never includes your uploaded file, spreadsheet contents, column names, generated SQL, target table names or validation results.</p></div></section>
     <section class="pricing shell" id="pricing"><div class="pricing-copy"><div class="eyebrow">NEXT: ROWMEND PRO</div><h2>Turn recurring imports into a governed workflow.</h2><p>The free tool supports local mapping profiles and validation. A future Pro version can add team-shared profiles, CI/CD checks, audit trails and richer automation.</p></div><div class="pricing-card"><div><strong>Free</strong><span>now</span></div><ul><li>CSV & Excel analysis</li><li>Automatic/custom CSV delimiters</li><li>Configurable validation rules</li><li>Column mapping</li><li>Local saved profiles</li><li>Error / clean CSV export</li><li>Safe-by-default SQL generation</li><li>Oracle / SQL Server / PostgreSQL</li></ul><button class="btn primary full" id="proInterest" type="button">Help shape RowMend Pro</button><small id="interestNote">Short voluntary survey. No file or dataset content is sent.</small></div></section>
   </main>
