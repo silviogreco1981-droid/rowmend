@@ -4,7 +4,7 @@
 
 RowMend is a local-first browser tool for checking import files, spotting data-quality problems, mapping columns, applying validation rules, exporting clean/error CSVs, and generating safe SQL for Oracle, SQL Server, and PostgreSQL.
 
-**Try it:** https://rowmend.netlify.app
+**Try it:** https://rowmend.netlify.app/?utm_source=github&utm_medium=referral&utm_campaign=repository
 
 ## Why RowMend
 
@@ -48,7 +48,7 @@ See the live privacy notice for details.
 
 ## Quick start
 
-1. Open https://rowmend.netlify.app
+1. Open https://rowmend.netlify.app/?utm_source=github&utm_medium=referral&utm_campaign=repository
 2. Drop a CSV/Excel file, or load the sample dataset.
 3. Review **Issues** and **Mapping & Rules**.
 4. Choose your target SQL dialect and key column if needed.
@@ -132,6 +132,19 @@ If RowMend saves you time, breaks on a file shape you commonly use, or is missin
 - Very large files may be limited by browser memory and responsiveness.
 - Generated SQL must be reviewed and tested before use.
 - Legal pages are MVP drafts and are not legal advice.
+
+
+## Practical guide
+
+Read the technical guide: **[How to validate CSV & Excel before database import](https://rowmend.netlify.app/guides/validate-csv-excel-before-database-import/?utm_source=github&utm_medium=referral&utm_campaign=technical_guide)**.
+
+It covers schema drift, mappings, required values, duplicate keys, type/date validation, clean/error rows, and safe SQL generation.
+
+## CSV Import Test Kit
+
+The repository includes a small **[CSV Import Test Kit](./test-kit/)** with deliberately valid and invalid files for testing import-validation workflows.
+
+The kit includes examples for missing required values, duplicate keys, invalid values, and schema drift. It can be used with RowMend or with other ETL/import validation workflows.
 
 ## Branding note
 

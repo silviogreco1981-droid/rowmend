@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How to Validate CSV & Excel Before Database Import — RowMend</title>
+  <meta name="description" content="A practical pre-flight checklist for validating CSV and Excel files before database import: schema drift, mappings, required values, duplicate keys, data types, dates and safe SQL generation." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/guides/validate-csv-excel-before-database-import/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="How to Validate CSV & Excel Before Database Import — RowMend" />
+  <meta property="og:description" content="A practical checklist for catching schema, mapping and data-quality problems before they reach the database." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://rowmend.netlify.app/guides/validate-csv-excel-before-database-import/" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script defer src="/analytics.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/">Tool</a><a href="/#how">How it works</a><a href="/#privacy">Privacy</a></nav>
+  </header>
+
+  <main class="shell" style="max-width:900px;padding:72px 0 96px">
+    <article>
+      <div class="eyebrow">DATABASE IMPORT GUIDE</div>
+      <h1 style="font-size:clamp(42px,7vw,72px);letter-spacing:-.05em;line-height:.98;margin:18px 0 24px">How to validate CSV &amp; Excel before database import</h1>
+      <p class="lede">A file can be perfectly readable and still be dangerous to import. The useful question is not only “can the parser open it?” but “does this file still match the structure and rules the target expects?”</p>
+
+      <p>Many import failures are easy to spot: a malformed delimiter, a broken workbook, or a value that cannot be parsed. The harder cases are the ones that look valid. A column was renamed. Two fields swapped position. A key became duplicated. A date format changed. The load completes, but the target now contains the wrong data.</p>
+
+      <h2>1. Validate the structure before validating the values</h2>
+      <p>Start with the shape of the file. Check whether the expected columns are present, whether unexpected columns appeared, and whether mappings still point to the intended target fields.</p>
+      <p>This matters especially when a pipeline maps fields by position. A structurally valid CSV with a changed column order can still load successfully while assigning values to the wrong target columns. Mapping by explicit column name is generally safer, but the mapping itself should still be reviewed when the source changes.</p>
+
+      <h2>2. Check required fields before the database does</h2>
+      <p>Database constraints are an important final line of defense, but they are a poor first diagnostic tool for an import file. Validate required values before generation or loading so you can identify the affected rows and explain the problem in the context of the source file.</p>
+      <p>Typical checks include required identifiers, names or codes that drive downstream logic, and fields that are technically nullable in the database but mandatory for the business process.</p>
+
+      <h2>3. Detect duplicate keys early</h2>
+      <p>Duplicate business or primary keys can turn a simple import into an ambiguous update. Before generating INSERT, MERGE or UPSERT statements, verify the uniqueness of the field used to identify a row.</p>
+      <p>This is particularly important for recurring imports. A source that was unique last month may not remain unique forever, and duplicate records can create misleading row counts even when the overall number of rows still looks reasonable.</p>
+
+      <h2>4. Validate data types and dates explicitly</h2>
+      <p>Implicit conversions are convenient until they are not. Numbers may arrive with different decimal conventions, dates may switch format, and text may contain values that only look numeric.</p>
+      <p>Prefer explicit, conservative checks for the formats your import process actually supports. For dates, a small set of known formats is usually safer than aggressive guessing. For numeric values, decide whether signs, decimal separators, thousands separators and empty values are allowed.</p>
+
+      <h2>5. Separate invalid rows from valid rows</h2>
+      <p>An import workflow is easier to review when problematic rows are isolated instead of mixed into the generated output. Keep a clean set of rows that passed validation and a separate error set containing the source rows that need attention.</p>
+      <p>This makes remediation easier and reduces the risk of accidentally including known-invalid rows in generated SQL.</p>
+
+      <h2>6. Generate SQL only after validation and mapping</h2>
+      <p>SQL generation should be the final step, not the validation mechanism. By the time an INSERT, MERGE or UPSERT statement is produced, the source-to-target mapping, key selection and validation rules should already be explicit.</p>
+      <p>Generated SQL should still be reviewed and tested before execution against a production database. Validation reduces avoidable errors; it does not replace database backups, transaction controls or application-specific checks.</p>
+
+      <h2>Database-specific considerations</h2>
+      <p><strong>Oracle:</strong> pay particular attention to date formatting, target character set assumptions and MERGE key semantics.</p>
+      <p><strong>SQL Server:</strong> review target types, date literals and whether Unicode text needs explicit handling in your final SQL workflow.</p>
+      <p><strong>PostgreSQL:</strong> review identifier casing, target types and the conflict key used for UPSERT behavior.</p>
+
+      <h2>A practical pre-flight checklist</h2>
+      <ul>
+        <li>Expected columns are present.</li>
+        <li>Unexpected or renamed columns are reviewed.</li>
+        <li>Source columns map to the intended target columns.</li>
+        <li>Required values are present.</li>
+        <li>Key values are unique where required.</li>
+        <li>Dates, numbers and other typed values match accepted formats.</li>
+        <li>Invalid rows are separated from valid rows.</li>
+        <li>Generated SQL excludes known-invalid rows by default.</li>
+        <li>Generated statements are reviewed before production use.</li>
+      </ul>
+
+      <section style="margin-top:56px;padding:28px;border:1px solid rgba(127,127,127,.24);border-radius:18px">
+        <div class="eyebrow">TRY THE WORKFLOW</div>
+        <h2 style="margin-top:10px">Run the checks locally in your browser</h2>
+        <p>RowMend validates CSV and Excel data, lets you review mappings and rules, separates clean and invalid rows, and generates SQL for Oracle, SQL Server and PostgreSQL. Files are processed locally in the browser.</p>
+        <p><a class="btn primary" href="/#tool">Open the RowMend import checker</a></p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Working product name · MVP 0.3.3</p><div><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+</body>
+</html>
