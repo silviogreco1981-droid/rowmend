@@ -133,6 +133,19 @@ If RowMend saves you time, breaks on a file shape you commonly use, or is missin
 - Generated SQL must be reviewed and tested before use.
 - Legal pages are MVP drafts and are not legal advice.
 
+
+## Practical guide
+
+Read the technical guide: **[How to validate CSV & Excel before database import](https://rowmend.netlify.app/guides/validate-csv-excel-before-database-import/)**.
+
+It covers schema drift, mappings, required values, duplicate keys, type/date validation, clean/error rows, and safe SQL generation.
+
+## CSV Import Test Kit
+
+The repository includes a small **[CSV Import Test Kit](./test-kit/)** with deliberately valid and invalid files for testing import-validation workflows.
+
+The kit includes examples for missing required values, duplicate keys, invalid values, and schema drift. It can be used with RowMend or with other ETL/import validation workflows.
+
 ## Branding note
 
 **RowMend** is currently a working product name. Formal trademark/domain clearance should be completed before material commercial investment in the brand.
