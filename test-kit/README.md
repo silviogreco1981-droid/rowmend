@@ -33,7 +33,7 @@ These samples can be used with RowMend or with any ETL/import validation workflo
 
 ## Try with RowMend
 
-Open https://rowmend.netlify.app/ and load one of the files.
+Open https://rowmend.netlify.app/?utm_source=github&utm_medium=referral&utm_campaign=csv_test_kit and load one of the files.
 
 Review:
 
