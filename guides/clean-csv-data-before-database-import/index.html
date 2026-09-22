@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How to Clean CSV Data Before Database Import — RowMend</title>
+  <meta name="description" content="A practical guide to cleaning CSV data before import: trim whitespace, normalize casing, replace values, rename columns and remove duplicates safely." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/guides/clean-csv-data-before-database-import/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="How to Clean CSV Data Before Database Import — RowMend" />
+  <meta property="og:description" content="Build a repeatable cleanup recipe instead of editing import files manually." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://rowmend.netlify.app/guides/clean-csv-data-before-database-import/" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script defer src="/analytics.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/profile-data/">Profile</a><a href="/clean-data/">Clean</a><a href="/migration-check/">Compare</a><a href="/#tool">Import</a></nav>
+  </header>
+  <main class="shell" style="max-width:900px;padding:72px 0 96px">
+    <article>
+      <div class="eyebrow">DATA CLEANING GUIDE</div>
+      <h1 style="font-size:clamp(42px,7vw,72px);letter-spacing:-.05em;line-height:.98;margin:18px 0 24px">How to clean CSV data before database import</h1>
+      <p class="lede">Manual spreadsheet cleanup is difficult to repeat and easy to forget. A better approach is to build an explicit sequence of small transformations that can be reviewed before export.</p>
+
+      <h2>1. Keep the original dataset untouched</h2>
+      <p>Always preserve the source data. Apply transformations to a working copy so that every change can be reviewed, removed or reapplied without losing the original evidence.</p>
+
+      <h2>2. Remove accidental whitespace deliberately</h2>
+      <p>Leading and trailing spaces can break joins, keys and equality checks. Trimming text is often useful, but it should be a visible transformation rather than an invisible side effect.</p>
+
+      <h2>3. Normalize casing only where casing is not meaningful</h2>
+      <p>Status codes, country codes and some identifiers may benefit from consistent uppercase or lowercase. Free-form names and case-sensitive identifiers may not. Apply case normalization by column rather than globally when possible.</p>
+
+      <h2>4. Replace known placeholder values</h2>
+      <p>Source systems often use values such as “N/A”, “-” or legacy labels. A repeatable find-and-replace step makes those changes auditable and avoids ad-hoc manual edits.</p>
+
+      <h2>5. Treat empty values and NULL intentionally</h2>
+      <p>An empty string is not always equivalent to database NULL. Decide which representation the downstream process expects and normalize only when that rule is appropriate for the target system.</p>
+
+      <h2>6. Remove duplicates using the right rule</h2>
+      <p>Exact duplicate rows are straightforward. Duplicate business keys require more care: choose the key columns explicitly and decide whether the first or last occurrence should survive.</p>
+
+      <h2>7. Preview before exporting</h2>
+      <p>A before/after preview should be part of the workflow. Review row counts, column names and representative values before generating the clean output used by an import or migration process.</p>
+
+      <section style="margin-top:56px;padding:28px;border:1px solid rgba(127,127,127,.24);border-radius:18px">
+        <div class="eyebrow">BUILD A RECIPE</div>
+        <h2 style="margin-top:10px">Clean data locally and export the result</h2>
+        <p>RowMend Clean & Transform lets you build an ordered recipe, preview the transformed dataset, save the recipe locally and export a clean CSV without uploading the source file.</p>
+        <p><a class="btn primary" href="/clean-data/">Open Clean & Transform</a></p>
+      </section>
+
+      <p style="margin-top:36px">If you have not inspected the file yet, start with <a href="/guides/profile-csv-data-before-import/">profiling the CSV before import</a>.</p>
+    </article>
+  </main>
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>MVP 0.5.0 · local-first data operations</p><div><a href="/">Home</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+</body>
+</html>
