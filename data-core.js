@@ -194,16 +194,24 @@
   }
 
   function dateStats(values) {
-    const timestamps = values
-      .map(value => Date.parse(String(value ?? '').trim()))
-      .filter(Number.isFinite);
+    let count = 0;
+    let min = Infinity;
+    let max = -Infinity;
 
-    if (!timestamps.length) return null;
+    values.forEach(value => {
+      const timestamp = Date.parse(String(value ?? '').trim());
+      if (!Number.isFinite(timestamp)) return;
+      count += 1;
+      if (timestamp < min) min = timestamp;
+      if (timestamp > max) max = timestamp;
+    });
+
+    if (!count) return null;
 
     return {
-      min: new Date(Math.min(...timestamps)).toISOString(),
-      max: new Date(Math.max(...timestamps)).toISOString(),
-      count: timestamps.length
+      min: new Date(min).toISOString(),
+      max: new Date(max).toISOString(),
+      count
     };
   }
 
@@ -246,8 +254,9 @@
     const columnProfiles = safeHeaders.map(name => {
       const values = safeRows.map(row => row[name]);
       const inference = inferColumn(values);
-      const unique = new Set(values.map(value => normalizeForKey(value))).size;
       const missing = inference.counts.empty;
+      const nonEmptyValues = values.filter(value => primitiveType(value) !== 'empty');
+      const unique = new Set(nonEmptyValues.map(value => normalizeForKey(value))).size;
       const nonEmpty = safeRows.length - missing;
       const mixedTypeCount = Object.entries(inference.counts)
         .filter(([type, count]) => type !== 'empty' && type !== inference.type && count > 0)
