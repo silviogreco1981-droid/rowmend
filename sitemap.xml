@@ -6,4 +6,13 @@
   <url>
     <loc>https://rowmend.netlify.app/guides/validate-csv-excel-before-database-import/</loc>
   </url>
+  <url>
+    <loc>https://rowmend.netlify.app/migration-check/</loc>
+  </url>
+  <url>
+    <loc>https://rowmend.netlify.app/guides/validate-data-after-database-migration/</loc>
+  </url>
+  <url>
+    <loc>https://rowmend.netlify.app/guides/find-missing-records-after-csv-import/</loc>
+  </url>
 </urlset>

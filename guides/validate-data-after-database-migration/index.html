@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How to Validate Data After a Database Migration — RowMend</title>
+  <meta name="description" content="A practical source-to-target reconciliation checklist for validating a database migration: missing, extra, changed and duplicate records." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/guides/validate-data-after-database-migration/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="How to Validate Data After a Database Migration — RowMend" />
+  <meta property="og:description" content="Validate a migration by reconciling source and target records instead of relying on row counts alone." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://rowmend.netlify.app/guides/validate-data-after-database-migration/" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script defer src="/analytics.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/migration-check/">Migration Check</a><a href="/#tool">Import Checker</a><a href="/#privacy">Privacy</a></nav>
+  </header>
+
+  <main class="shell" style="max-width:900px;padding:72px 0 96px">
+    <article>
+      <div class="eyebrow">DATA MIGRATION GUIDE</div>
+      <h1 style="font-size:clamp(42px,7vw,72px);letter-spacing:-.05em;line-height:.98;margin:18px 0 24px">How to validate data after a database migration</h1>
+      <p class="lede">A matching row count is useful, but it does not prove that a migration is correct. A stronger check reconciles source and target records by key and inspects what is missing, unexpected, changed or duplicated.</p>
+
+      <h2>1. Export comparable source and target datasets</h2>
+      <p>Start from two snapshots that represent the same logical population: one from the source system and one from the migrated target. Keep stable identifiers and the fields whose values should survive the migration.</p>
+      <p>CSV is often enough for an independent reconciliation because it decouples the check from the migration code itself. The validation process can then inspect the result without relying on the same transformation logic that produced it.</p>
+
+      <h2>2. Choose the record key carefully</h2>
+      <p>The key determines which source row corresponds to which target row. Use a stable primary key or business key. If uniqueness depends on more than one field, use a composite key such as company plus customer code.</p>
+      <p>Do not silently resolve duplicate keys. A duplicated key makes matching ambiguous and should be reported for review.</p>
+
+      <h2>3. Check missing and extra records</h2>
+      <p>A source key that does not exist in the target is a missing record. A target key that did not exist in the source is an extra record. Both can be important even when total row counts happen to match.</p>
+      <p>For example, one lost source row and one unexpected target row can cancel each other numerically while still representing two migration defects.</p>
+
+      <h2>4. Compare values for matched keys</h2>
+      <p>Once a key exists on both sides, compare the mapped fields. Report the record once as changed while preserving the individual field differences so that remediation remains understandable.</p>
+      <p>Column names can change during a migration, so source-to-target mapping should be explicit rather than assuming identical schemas.</p>
+
+      <h2>5. Normalize only what is intentionally equivalent</h2>
+      <p>Whitespace, letter casing and NULL-versus-empty-string behavior can create noisy differences. Apply normalization rules deliberately and keep the original values available for review.</p>
+      <p>A normalization rule should affect comparison, not rewrite evidence. If two values compare as equal after trimming, the original source and target values should still remain untouched.</p>
+
+      <h2>6. Produce an issue report</h2>
+      <p>A useful reconciliation report separates changed, missing, extra and duplicate records. Exporting those issues as CSV gives developers, DBAs and business owners a compact remediation list that can be attached to a migration ticket or validation record.</p>
+
+      <h2>Migration validation checklist</h2>
+      <ul>
+        <li>Source and target snapshots represent the same population.</li>
+        <li>A stable single or composite key is selected.</li>
+        <li>Duplicate keys are identified before matching.</li>
+        <li>Missing source records are listed.</li>
+        <li>Unexpected target records are listed.</li>
+        <li>Mapped values are compared for matched keys.</li>
+        <li>Normalization rules are explicit and limited.</li>
+        <li>Differences are exported for review and remediation.</li>
+      </ul>
+
+      <section style="margin-top:56px;padding:28px;border:1px solid rgba(127,127,127,.24);border-radius:18px">
+        <div class="eyebrow">TRY THE CHECK</div>
+        <h2 style="margin-top:10px">Compare source and target CSV locally</h2>
+        <p>RowMend Migration Check matches records by one or more keys and reports changed, missing, extra and duplicate records. The files stay in your browser.</p>
+        <p><a class="btn primary" href="/migration-check/">Open Migration Check</a></p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Working product name · MVP 0.4.0</p><div><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+</body>
+</html>
