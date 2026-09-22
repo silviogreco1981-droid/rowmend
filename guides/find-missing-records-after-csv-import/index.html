@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How to Find Missing Records After a CSV Import — RowMend</title>
+  <meta name="description" content="Find records missing after a CSV import by comparing source and target datasets with stable keys, duplicate detection and source-to-target reconciliation." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/guides/find-missing-records-after-csv-import/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="How to Find Missing Records After a CSV Import — RowMend" />
+  <meta property="og:description" content="A practical way to detect records that disappeared between a source CSV and the imported target dataset." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://rowmend.netlify.app/guides/find-missing-records-after-csv-import/" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script defer src="/analytics.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/migration-check/">Migration Check</a><a href="/#tool">Import Checker</a><a href="/#privacy">Privacy</a></nav>
+  </header>
+
+  <main class="shell" style="max-width:900px;padding:72px 0 96px">
+    <article>
+      <div class="eyebrow">CSV IMPORT GUIDE</div>
+      <h1 style="font-size:clamp(42px,7vw,72px);letter-spacing:-.05em;line-height:.98;margin:18px 0 24px">How to find missing records after a CSV import</h1>
+      <p class="lede">When an import finishes with fewer rows than expected, the fastest useful question is not only “how many are missing?” but “which source keys never reached the target?”</p>
+
+      <h2>1. Keep a stable identifier in both datasets</h2>
+      <p>Export the source file and a target snapshot with a common key such as customer ID, product code or transaction reference. If the identifier is composite, retain every field needed to make it unique.</p>
+
+      <h2>2. Build a set of target keys</h2>
+      <p>For each target record, build the selected key and store it in an indexed structure. Then walk through the source records and check whether each source key exists in the target. This avoids repeatedly scanning the entire target dataset.</p>
+      <p>For large files, an indexed comparison is materially more efficient than checking every source row against every target row.</p>
+
+      <h2>3. Treat duplicate keys as a separate problem</h2>
+      <p>A duplicate can make a supposedly missing-record check misleading. If a key appears more than once in either dataset, report it separately instead of choosing one occurrence arbitrarily.</p>
+
+      <h2>4. Do not rely on row counts alone</h2>
+      <p>If the source contains 10,000 rows and the target also contains 10,000 rows, the import can still be wrong. A missing source record and an unexpected target record can leave the total unchanged.</p>
+      <p>Reconciliation should therefore report both missing and extra keys.</p>
+
+      <h2>5. Check matched records for changed values</h2>
+      <p>After confirming that the same key exists on both sides, compare important mapped fields. This catches transformations or truncations that did not remove the row but altered its content.</p>
+
+      <h2>6. Export the discrepancies</h2>
+      <p>A compact issue CSV with issue type, key, column, source value and target value is easier to review than manually searching two large spreadsheets. It also provides a repeatable artifact for remediation.</p>
+
+      <section style="margin-top:56px;padding:28px;border:1px solid rgba(127,127,127,.24);border-radius:18px">
+        <div class="eyebrow">COMPARE THE FILES</div>
+        <h2 style="margin-top:10px">Find missing records without uploading your CSV</h2>
+        <p>RowMend Migration Check compares source and target CSV/TSV files locally and separates missing, extra, changed and duplicate records.</p>
+        <p><a class="btn primary" href="/migration-check/">Open Migration Check</a></p>
+      </section>
+
+      <p style="margin-top:36px">For a broader post-migration checklist, read <a href="/guides/validate-data-after-database-migration/">how to validate data after a database migration</a>.</p>
+    </article>
+  </main>
+
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Working product name · MVP 0.4.0</p><div><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+</body>
+</html>
