@@ -315,9 +315,20 @@
 
   function selectedColumns(operation, headers) {
     if (Array.isArray(operation.columns) && operation.columns.length) {
-      return operation.columns.filter(column => headers.includes(column));
+      const missing = operation.columns.filter(column => !headers.includes(column));
+      if (missing.length) {
+        throw new Error(`Transform references missing column${missing.length === 1 ? '' : 's'}: ${missing.join(', ')}`);
+      }
+      return [...operation.columns];
     }
-    if (operation.column && headers.includes(operation.column)) return [operation.column];
+
+    if (operation.column) {
+      if (!headers.includes(operation.column)) {
+        throw new Error(`Transform references missing column: ${operation.column}`);
+      }
+      return [operation.column];
+    }
+
     return [...headers];
   }
 
