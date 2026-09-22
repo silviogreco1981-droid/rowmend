@@ -102,6 +102,17 @@ const core = require('../data-core.js');
 }
 
 {
+  const dataset = { headers:['ID','NAME'], rows:[{ID:'1',NAME:'Alice'}] };
+  let failed = false;
+  try {
+    core.applyOperation(dataset, { type:'trim', column:'MISSING_COLUMN' });
+  } catch (error) {
+    failed = /missing column/i.test(error.message);
+  }
+  assert.ok(failed, 'Missing recipe columns must fail instead of applying broadly');
+}
+
+{
   const csv = core.datasetToCsv({
     headers:['A','B'],
     rows:[{A:'x,y',B:'"quoted"'}]
