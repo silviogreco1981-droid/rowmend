@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How to Profile CSV Data Before Import — RowMend</title>
+  <meta name="description" content="Learn how to profile CSV data before import by checking missing values, uniqueness, duplicates, inferred types, ranges and common values." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/guides/profile-csv-data-before-import/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="How to Profile CSV Data Before Import — RowMend" />
+  <meta property="og:description" content="A practical checklist for understanding CSV quality and structure before cleaning, importing or migrating data." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://rowmend.netlify.app/guides/profile-csv-data-before-import/" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script defer src="/analytics.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/profile-data/">Profile</a><a href="/clean-data/">Clean</a><a href="/migration-check/">Compare</a><a href="/#tool">Import</a></nav>
+  </header>
+  <main class="shell" style="max-width:900px;padding:72px 0 96px">
+    <article>
+      <div class="eyebrow">DATA PROFILING GUIDE</div>
+      <h1 style="font-size:clamp(42px,7vw,72px);letter-spacing:-.05em;line-height:.98;margin:18px 0 24px">How to profile CSV data before import</h1>
+      <p class="lede">Before cleaning or importing a file, understand what is actually inside it. A short profiling pass can reveal sparse columns, duplicate rows, unstable identifiers, mixed types and unexpected value distributions.</p>
+
+      <h2>1. Start with shape and completeness</h2>
+      <p>Record the number of rows and columns, then measure missing values by column. A dataset with a high overall completeness rate can still contain one critical identifier or business field that is unexpectedly sparse.</p>
+
+      <h2>2. Measure uniqueness, not just row count</h2>
+      <p>Columns that are expected to identify records should be checked for both missing values and uniqueness. A column with one value per row and no blanks is a candidate key; a sudden drop in uniqueness can indicate duplicates or source-system changes.</p>
+
+      <h2>3. Infer types and look for mixed values</h2>
+      <p>A column dominated by numbers but containing a few text values deserves attention. Mixed types often expose formatting drift, placeholders such as “N/A”, or records that will fail downstream conversion.</p>
+
+      <h2>4. Inspect ranges and common values</h2>
+      <p>Minimum and maximum values help reveal outliers in numeric and date fields. For categorical columns, common-value counts can reveal unexpected defaults, status codes or skew.</p>
+
+      <h2>5. Detect exact duplicate rows</h2>
+      <p>Exact duplicates are not always errors, but they should be visible before import. A duplicated row can inflate totals, create constraint failures or hide a broken upstream extraction process.</p>
+
+      <h2>6. Use the profile to decide what to clean</h2>
+      <p>Profiling is descriptive. Once the signals are visible, create deliberate transformations rather than applying broad cleanup rules blindly. Trim text where whitespace is accidental, normalize case where casing is not meaningful, and remove duplicates only when the key semantics are clear.</p>
+
+      <section style="margin-top:56px;padding:28px;border:1px solid rgba(127,127,127,.24);border-radius:18px">
+        <div class="eyebrow">TRY IT LOCALLY</div>
+        <h2 style="margin-top:10px">Profile CSV or Excel without uploading it</h2>
+        <p>RowMend Data Profiler summarizes missing values, uniqueness, duplicate rows, inferred types, ranges and common values directly in your browser.</p>
+        <p><a class="btn primary" href="/profile-data/">Open Data Profiler</a></p>
+      </section>
+
+      <p style="margin-top:36px">Once you understand the dataset, continue with <a href="/guides/clean-csv-data-before-database-import/">cleaning and transforming CSV data before import</a>.</p>
+    </article>
+  </main>
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>MVP 0.5.0 · local-first data operations</p><div><a href="/">Home</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+</body>
+</html>
