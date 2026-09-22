@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clean & Transform CSV Data — RowMend</title>
+  <meta name="description" content="Clean and transform CSV, TSV and Excel data locally in your browser. Trim text, normalize case, replace values, rename columns, remove duplicates and export clean CSV." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/clean-data/" />
+  <meta property="og:title" content="Clean & Transform CSV Data — RowMend" />
+  <meta property="og:description" content="Build a repeatable browser-only cleanup recipe and export the transformed dataset without uploading it." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://rowmend.netlify.app/clean-data/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/toolbox.css" />
+  <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script defer src="/analytics.js"></script>
+  <script defer src="/data-core.js"></script>
+  <script defer src="/clean-data/clean-data.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/profile-data/">Profile</a><a href="/clean-data/" aria-current="page">Clean</a><a href="/migration-check/">Compare</a><a href="/#tool">Import</a><a href="/#pricing">Pro</a></nav>
+  </header>
+
+  <main>
+    <section class="toolbox-hero shell">
+      <div class="eyebrow">CLEAN & TRANSFORM · V0.5.0</div>
+      <h1>Turn messy files into <span>repeatable clean data.</span></h1>
+      <p class="lede">Build a local transformation recipe, preview every step, undo safely, save the recipe in your browser and export the result as CSV.</p>
+      <div class="trust-row"><span>✓ No signup</span><span>✓ No file upload</span><span>✓ Reusable local recipes</span></div>
+    </section>
+
+    <section class="shell workflow-strip" aria-label="RowMend workflow">
+      <a href="/profile-data/"><strong>1. Profile</strong>Understand shape & quality</a>
+      <a class="active" href="/clean-data/"><strong>2. Clean</strong>Transform and normalize</a>
+      <a href="/#tool"><strong>3. Validate</strong>Apply import rules</a>
+      <a href="/#tool"><strong>4. Generate</strong>Create SQL</a>
+      <a href="/migration-check/"><strong>5. Compare</strong>Source vs target</a>
+      <a href="/migration-check/"><strong>6. Reconcile</strong>Review migration issues</a>
+    </section>
+
+    <section class="shell toolbox-layout">
+      <aside class="toolbox-card toolbox-side">
+        <label class="toolbox-drop" id="cleanDrop" for="cleanFile">
+          <input id="cleanFile" type="file" accept=".csv,.tsv,.xlsx,.xls" hidden />
+          <span class="upload-icon">⇧</span>
+          <strong>Drop CSV or Excel here</strong>
+          <small>or click to choose a file</small>
+          <small class="muted">CSV · TSV · XLSX · XLS</small>
+        </label>
+        <button class="text-btn" id="loadCleanDemo" type="button">Use messy sample data instead</button>
+        <div class="field-group">
+          <label for="cleanDelimiter">CSV delimiter</label>
+          <select id="cleanDelimiter">
+            <option value="auto">Auto detect</option>
+            <option value=",">Comma (,)</option>
+            <option value=";">Semicolon (;)</option>
+            <option value="tab">Tab</option>
+            <option value="|">Pipe (|)</option>
+          </select>
+        </div>
+        <div class="toolbox-actions">
+          <button class="btn primary full" id="exportCleaned" type="button" disabled>Export cleaned CSV</button>
+          <button class="btn ghost full" id="resetRecipe" type="button" disabled>Reset transformations</button>
+        </div>
+        <div class="toolbox-message" id="cleanMessage" aria-live="polite"></div>
+      </aside>
+
+      <div class="toolbox-card">
+        <div class="toolbox-empty" id="cleanEmpty">
+          <strong>Build a cleanup recipe here</strong>
+          <span>Load a dataset, add transformations and preview the result before exporting.</span>
+        </div>
+
+        <div id="cleanResults" class="hidden">
+          <div class="toolbox-summary" id="cleanSummary"></div>
+          <div class="toolbox-body">
+            <div class="toolbox-toolbar">
+              <div><div class="eyebrow">TRANSFORMATION RECIPE</div><h2>Clean step by step.</h2></div>
+              <span class="local-badge">● processed locally</span>
+            </div>
+
+            <div class="transform-form">
+              <div class="field-group">
+                <label for="operationType">Operation</label>
+                <select id="operationType">
+                  <option value="trim">Trim whitespace</option>
+                  <option value="uppercase">Uppercase text</option>
+                  <option value="lowercase">Lowercase text</option>
+                  <option value="empty_to_null">Empty values → NULL</option>
+                  <option value="find_replace">Find & replace</option>
+                  <option value="rename">Rename column</option>
+                  <option value="remove_exact_duplicates">Remove exact duplicate rows</option>
+                  <option value="remove_key_duplicates">Remove duplicates by key</option>
+                  <option value="drop_empty_rows">Drop completely empty rows</option>
+                  <option value="filter_nonempty">Keep rows where column is not empty</option>
+                </select>
+              </div>
+              <div class="field-group" id="operationColumnGroup">
+                <label for="operationColumn">Column</label>
+                <select id="operationColumn"></select>
+              </div>
+              <button class="btn secondary" id="addOperation" type="button">Add transformation</button>
+            </div>
+
+            <div class="operation-extra hidden" id="findReplaceFields">
+              <input id="findValue" placeholder="Find exact text" />
+              <input id="replaceValue" placeholder="Replace with" />
+            </div>
+            <div class="operation-extra hidden" id="renameFields">
+              <input id="renameValue" placeholder="New column name" />
+            </div>
+            <div class="operation-extra hidden" id="dedupeFields">
+              <select id="dedupeKeep"><option value="first">Keep first occurrence</option><option value="last">Keep last occurrence</option></select>
+            </div>
+
+            <div class="recipe-list" id="recipeList"></div>
+
+            <div class="recipe-storage">
+              <input id="recipeName" placeholder="Recipe name, e.g. Supplier import cleanup" />
+              <button class="mini-btn" id="saveRecipe" type="button">Save recipe</button>
+              <select id="savedRecipes"><option value="">Saved recipes</option></select>
+              <button class="mini-btn" id="loadRecipe" type="button">Load</button>
+              <button class="mini-btn danger" id="deleteRecipe" type="button">Delete</button>
+            </div>
+
+            <div class="transform-preview">
+              <div class="toolbox-toolbar">
+                <div><div class="eyebrow">BEFORE / AFTER</div><h2>Preview the transformation.</h2></div>
+                <span class="muted" id="recipeImpact"></span>
+              </div>
+              <div class="preview-grid">
+                <div class="preview-box"><h3>Original</h3><div id="originalPreview"></div></div>
+                <div class="preview-box"><h3>Transformed</h3><div id="transformedPreview"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell toolbox-note">
+      <div class="privacy">
+        <div><div class="eyebrow">FREE BY DESIGN</div><h2>Useful transformations without artificial usage gates.</h2></div>
+        <div><p>RowMend keeps browser-side operations available without row-based paywalls or mandatory accounts. The long-term paid layer is aimed at collaboration, cloud automation, shared governance and recurring team workflows.</p><p class="muted">Saved recipes in this MVP remain only in your current browser via localStorage.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>MVP 0.5.0 · local-first data operations</p><div><a href="/">Home</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+</body>
+</html>
