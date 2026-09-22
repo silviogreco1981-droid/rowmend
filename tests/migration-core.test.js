@@ -68,6 +68,24 @@ assert.strictEqual(result.summary.matched, 0);
 assert.strictEqual(result.summary.changed, 0);
 
 result = compare(
+  [{ ID: '1', NAME: 'Alice' }],
+  [{ id: '1', name: 'Alice' }, { id: '1', name: 'Alice duplicate' }],
+  keys,
+  [{ sourceColumn: 'NAME', targetColumn: 'name', compare: true }]
+);
+assert.strictEqual(result.summary.targetDuplicates, 1);
+assert.strictEqual(result.summary.matched, 0);
+assert.strictEqual(result.summary.changed, 0);
+
+result = compare(
+  [{ ID: '1', NAME: 'Alice', EMAIL: 'a@x.com' }],
+  [{ email: 'a@x.com', name: 'Alice', id: '1' }],
+  keys,
+  mappings
+);
+assert.strictEqual(result.summary.matched, 1);
+
+result = compare(
   [{ ID: '1', A: 'x', B: 'y' }],
   [{ id: '1', a: 'xx', b: 'yy' }],
   keys,
