@@ -15,4 +15,16 @@
   <url>
     <loc>https://rowmend.netlify.app/guides/find-missing-records-after-csv-import/</loc>
   </url>
+  <url>
+    <loc>https://rowmend.netlify.app/profile-data/</loc>
+  </url>
+  <url>
+    <loc>https://rowmend.netlify.app/clean-data/</loc>
+  </url>
+  <url>
+    <loc>https://rowmend.netlify.app/guides/profile-csv-data-before-import/</loc>
+  </url>
+  <url>
+    <loc>https://rowmend.netlify.app/guides/clean-csv-data-before-database-import/</loc>
+  </url>
 </urlset>
