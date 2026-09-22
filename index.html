@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RowMend — Validate CSV & Excel Before Database Import</title>
-  <meta name="description" content="Validate CSV and Excel before database import. Find data quality issues, map columns and generate safe SQL for Oracle, SQL Server and PostgreSQL." />
+  <title>RowMend — Local-first Data Profiling, Cleaning, Validation & Migration Checks</title>
+  <meta name="description" content="Profile, clean, validate, transform and reconcile CSV/Excel data locally in your browser. Generate SQL and verify migrations without uploading files." />
   <meta name="robots" content="index,follow" />
-  <meta property="og:title" content="RowMend — Validate CSV & Excel Before Database Import" />
-  <meta property="og:description" content="Browser-only CSV/Excel validation, mapping and SQL generation. No uploads, no signup." />
+  <meta property="og:title" content="RowMend — Local-first Data Operations Toolbox" />
+  <meta property="og:description" content="Profile, clean, validate, generate SQL and reconcile migrations locally in your browser. No uploads, no signup." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://rowmend.netlify.app/" />
   <meta property="og:site_name" content="RowMend" />
@@ -22,6 +22,7 @@
   }
   </script>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="/toolbox.css" />
   <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script defer src="analytics.js"></script>
   <script defer src="app.js"></script>
@@ -31,17 +32,17 @@
 <body>
   <header class="topbar">
     <a class="brand" href="#top" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
-    <nav><a href="/migration-check/">Migration Check</a><a href="#tool">Import Checker</a><a href="#how">How it works</a><a href="/guides/validate-csv-excel-before-database-import/">Guide</a><a href="#privacy">Privacy</a><a href="#pricing">Pro</a></nav>
+    <nav><a href="/profile-data/">Profile</a><a href="/clean-data/">Clean</a><a href="#tool">Validate</a><a href="/migration-check/">Compare</a><a href="#pricing">Pro</a></nav>
   </header>
 
   <main id="top">
     <section class="hero shell">
       <div class="hero-copy">
-        <div class="eyebrow">LOCAL-FIRST DATA TOOLING</div>
-        <h1>Fix bad data <span>before</span> it reaches your database.</h1>
-        <p class="lede">Validate CSV and Excel files, map columns, apply rules, and generate SQL for Oracle, SQL Server and PostgreSQL — entirely in your browser.</p>
-        <div class="hero-actions"><a class="btn primary" href="#tool">Try it free</a><button class="btn ghost" id="loadDemoHero" type="button">Load sample data</button></div>
-        <div class="trust-row"><span>✓ No signup</span><span>✓ No file upload</span><span>✓ No backend</span></div>
+        <div class="eyebrow">LOCAL-FIRST DATA OPERATIONS · V0.5.0</div>
+        <h1>One toolbox for the <span>whole data workflow.</span></h1>
+        <p class="lede">Profile, clean, validate, transform, generate SQL and reconcile migrations — entirely in your browser, without artificial row limits or mandatory signup.</p>
+        <div class="hero-actions"><a class="btn primary" href="/profile-data/">Profile a dataset</a><a class="btn ghost" href="/clean-data/">Clean a file</a></div>
+        <div class="trust-row"><span>✓ No signup</span><span>✓ No file upload</span><span>✓ No artificial row paywall</span></div>
       </div>
       <div class="hero-card" aria-label="Product preview">
         <div class="window-head"><i></i><i></i><i></i><span>customer_import.xlsx</span></div>
@@ -54,9 +55,22 @@ WHEN MATCHED THEN UPDATE ...</pre>
       </div>
     </section>
 
+    <section class="toolbox-home shell" aria-labelledby="toolbox-title">
+      <div class="toolbox-home-head">
+        <div><div class="eyebrow">ROWMEND TOOLBOX</div><h2 id="toolbox-title">From raw file to verified result.</h2></div>
+        <p>Use one tool or move through the full workflow. Browser-side capabilities stay free; the future paid layer is reserved for collaboration, automation and governance.</p>
+      </div>
+      <div class="toolbox-home-grid">
+        <a class="toolbox-home-card" href="/profile-data/"><span>01 · PROFILE</span><h3>Understand the dataset</h3><p>Missing values, uniqueness, duplicate rows, inferred types, ranges and common values.</p><strong>Open Data Profiler →</strong></a>
+        <a class="toolbox-home-card" href="/clean-data/"><span>02 · CLEAN</span><h3>Build a cleanup recipe</h3><p>Trim, normalize case, replace values, rename columns, remove duplicates and export clean CSV.</p><strong>Open Clean & Transform →</strong></a>
+        <a class="toolbox-home-card" href="#tool"><span>03 · VALIDATE & GENERATE</span><h3>Prepare the import</h3><p>Map columns, apply validation rules and generate INSERT, MERGE or UPSERT SQL.</p><strong>Open Import Checker →</strong></a>
+        <a class="toolbox-home-card" href="/migration-check/"><span>04 · COMPARE</span><h3>Verify the migration</h3><p>Reconcile source and target data and find missing, extra, changed or duplicate records.</p><strong>Open Migration Check →</strong></a>
+      </div>
+    </section>
+
     <section class="privacy shell" aria-labelledby="migration-check-launch">
       <div>
-        <div class="eyebrow">NEW · MIGRATION CHECK V0.4.0</div>
+        <div class="eyebrow">MIGRATION CHECK · INCLUDED IN V0.5.0</div>
         <h2 id="migration-check-launch">Verify source vs target after a migration.</h2>
       </div>
       <div>
@@ -113,7 +127,7 @@ WHEN MATCHED THEN UPDATE ...</pre>
     <section class="privacy shell" id="privacy"><div><div class="eyebrow">PRIVACY BY ARCHITECTURE</div><h2>Your spreadsheet is not our dataset.</h2></div><div><p>RowMend is designed as a local-first tool. Parsing, validation, mapping, profile storage and SQL generation happen in the browser. This MVP has no application backend and no account system.</p><p class="muted">Saved mapping profiles remain in local browser storage until you delete them. Voluntary product feedback is collected separately through Tally and never includes your uploaded file, spreadsheet contents, column names, generated SQL, target table names or validation results.</p></div></section>
     <section class="pricing shell" id="pricing"><div class="pricing-copy"><div class="eyebrow">NEXT: ROWMEND PRO</div><h2>Turn recurring imports into a governed workflow.</h2><p>The free tool supports local mapping profiles and validation. A future Pro version can add team-shared profiles, CI/CD checks, audit trails and richer automation.</p></div><div class="pricing-card"><div><strong>Free</strong><span>now</span></div><ul><li>CSV & Excel analysis</li><li>Automatic/custom CSV delimiters</li><li>Configurable validation rules</li><li>Column mapping</li><li>Local saved profiles</li><li>Error / clean CSV export</li><li>Safe-by-default SQL generation</li><li>Oracle / SQL Server / PostgreSQL</li></ul><button class="btn primary full" id="proInterest" type="button">Help shape RowMend Pro</button><small id="interestNote">Short voluntary survey. No file or dataset content is sent.</small></div></section>
   </main>
-  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Working product name · MVP 0.4.0</p><div><button class="footer-feedback" id="footerFeedback" type="button">Give feedback</button><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Working product name · MVP 0.5.0</p><div><button class="footer-feedback" id="footerFeedback" type="button">Give feedback</button><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
 
   <div class="feedback-modal hidden" id="feedbackModal" aria-hidden="true">
     <div class="feedback-dialog" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
