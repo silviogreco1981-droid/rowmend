@@ -199,6 +199,7 @@
     let max = -Infinity;
 
     values.forEach(value => {
+      if (primitiveType(value) !== 'date') return;
       const timestamp = Date.parse(String(value ?? '').trim());
       if (!Number.isFinite(timestamp)) return;
       count += 1;
