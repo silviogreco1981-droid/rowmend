@@ -1,8 +1,8 @@
 # RowMend
 
-**Validate imports and verify data migrations locally in your browser.**
+**Profile, clean, validate, generate and reconcile data locally in your browser.**
 
-RowMend is a local-first browser tool for checking import files and verifying data migrations. It can compare source and target CSV/TSV datasets for missing, extra, changed and duplicate records, and it also validates import files, maps columns, exports clean/error CSVs, and generates safe SQL for Oracle, SQL Server, and PostgreSQL.
+RowMend is a local-first data operations toolbox. It profiles CSV/Excel datasets, builds repeatable cleanup recipes, validates import files, maps columns, generates SQL for Oracle, SQL Server and PostgreSQL, and reconciles source-vs-target data after a migration.
 
 **Try it:** https://rowmend.netlify.app/?utm_source=github&utm_medium=referral&utm_campaign=repository
 
@@ -20,6 +20,20 @@ It helps you answer questions like:
 - Can I generate INSERT or MERGE / UPSERT statements without including invalid rows by default?
 
 ## What it does
+
+### Data Profiler
+- Profile CSV, TSV, XLSX, or XLS files locally.
+- Measure completeness, missing values, uniqueness, exact duplicate rows and mixed types.
+- Inspect inferred types, numeric/date ranges, string lengths and common values.
+- Export the profile as CSV or JSON.
+
+### Clean & Transform
+- Build an ordered, reversible cleanup recipe.
+- Trim whitespace, normalize text case, convert empty values to NULL, find/replace values and rename columns.
+- Remove exact duplicates or deduplicate by one or more key columns.
+- Preview before/after data and export the transformed CSV.
+- Save reusable recipes in browser localStorage.
+
 
 - Compare **source and target CSV/TSV** datasets after a migration using one or more key columns.
 - Detect **missing, extra, changed, and duplicate** records with browser-only reconciliation.
@@ -45,11 +59,28 @@ Your spreadsheet is not uploaded to a RowMend application backend.
 
 Parsing, validation, mapping, local profile storage, and SQL generation happen in the browser. The current MVP has no application account system and no backend database.
 
-Minimal product analytics are used to understand whether people reach useful actions such as loading a file, generating SQL, exporting cleaned data, or saving a profile. RowMend does not intentionally send uploaded file contents, filenames, column names, generated SQL, target table names, validation results, profile names, or data values to analytics.
+Minimal product analytics are used to understand whether people reach useful actions such as profiling a dataset, applying transformations, loading a file, generating SQL, exporting cleaned data, comparing migrations, or saving a local profile/recipe. RowMend does not intentionally send uploaded file contents, filenames, column names, generated SQL, target table names, validation results, profile names, or data values to analytics.
 
 See the live privacy notice for details.
 
 ## Quick start
+
+### Data Profiler
+
+1. Open https://rowmend.netlify.app/profile-data/?utm_source=github&utm_medium=referral&utm_campaign=repository
+2. Load CSV/TSV/Excel or use the sample.
+3. Review completeness, duplicates, inferred types, uniqueness and common values.
+4. Open column detail for ranges and distributions.
+5. Export the profile as CSV or JSON.
+
+### Clean & Transform
+
+1. Open https://rowmend.netlify.app/clean-data/?utm_source=github&utm_medium=referral&utm_campaign=repository
+2. Load a dataset or use the messy sample.
+3. Add transformations to the ordered recipe.
+4. Review the before/after preview and row-count impact.
+5. Save the recipe locally or export the cleaned CSV.
+
 
 ### Migration Check
 
@@ -117,13 +148,13 @@ http://localhost:8080
 
 ## Current validation phase
 
-RowMend is being tested as a free utility before deciding which workflows are worth turning into paid Pro / Team features.
+RowMend is being developed as a useful free local-first toolbox. Browser-side capabilities that are cheap to provide are intended to remain broadly available; paid Pro / Team work is aimed at collaboration, cloud automation, shared governance and recurring organizational workflows.
 
 The key product question is not simply whether people can generate SQL. It is whether recurring import work creates enough pain around **repeatability, collaboration, governance, auditability, and automation** to justify a paid workflow.
 
 Potential future Pro / Team capabilities include:
 
-- shared reusable mapping and validation profiles;
+- shared reusable mapping, cleanup and validation profiles;
 - richer validation rules and schema contracts;
 - batch processing;
 - audit and exportable quality reports;
