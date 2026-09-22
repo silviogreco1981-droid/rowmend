@@ -1,8 +1,8 @@
 # RowMend
 
-**Validate CSV and Excel files before they reach your database.**
+**Validate imports and verify data migrations locally in your browser.**
 
-RowMend is a local-first browser tool for checking import files, spotting data-quality problems, mapping columns, applying validation rules, exporting clean/error CSVs, and generating safe SQL for Oracle, SQL Server, and PostgreSQL.
+RowMend is a local-first browser tool for checking import files and verifying data migrations. It can compare source and target CSV/TSV datasets for missing, extra, changed and duplicate records, and it also validates import files, maps columns, exports clean/error CSVs, and generates safe SQL for Oracle, SQL Server, and PostgreSQL.
 
 **Try it:** https://rowmend.netlify.app/?utm_source=github&utm_medium=referral&utm_campaign=repository
 
@@ -20,6 +20,9 @@ It helps you answer questions like:
 - Can I generate INSERT or MERGE / UPSERT statements without including invalid rows by default?
 
 ## What it does
+
+- Compare **source and target CSV/TSV** datasets after a migration using one or more key columns.
+- Detect **missing, extra, changed, and duplicate** records with browser-only reconciliation.
 
 - Load **CSV, TSV, XLSX, or XLS** files.
 - Parse and inspect data **locally in your browser**.
@@ -47,6 +50,17 @@ Minimal product analytics are used to understand whether people reach useful act
 See the live privacy notice for details.
 
 ## Quick start
+
+### Migration Check
+
+1. Open https://rowmend.netlify.app/migration-check/?utm_source=github&utm_medium=referral&utm_campaign=repository
+2. Load a source CSV/TSV and a target CSV/TSV, or use the demo comparison.
+3. Confirm automatic column mapping and select one or more key columns.
+4. Compare the datasets and review changed, missing, extra, and duplicate records.
+5. Export detected issues as CSV when needed.
+
+### Import Checker
+
 
 1. Open https://rowmend.netlify.app/?utm_source=github&utm_medium=referral&utm_campaign=repository
 2. Drop a CSV/Excel file, or load the sample dataset.
