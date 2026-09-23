@@ -329,6 +329,7 @@
     track('workflow_runner_opened');
     const params = new URLSearchParams(window.location.search);
     const projectId = params.get('project');
+    const demoMode = params.get('demo') === '1';
     state.project = projectId ? projectCore.getProject(projectId) : null;
 
     renderProject();
@@ -336,6 +337,11 @@
 
     $('runWorkflow').addEventListener('click', runWorkflow);
     $('loadRunnerDemo').addEventListener('click', loadDemoDataset);
+
+    if (demoMode && state.project) {
+      track('project_created', { demo:true });
+      loadDemoDataset();
+    }
 
     $('downloadCleaned').addEventListener('click', () => {
       if (!state.result?.cleanedDataset) return;
