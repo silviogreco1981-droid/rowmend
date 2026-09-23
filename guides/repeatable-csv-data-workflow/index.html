@@ -45,14 +45,21 @@
       <h2>6. Keep reconciliation settings with the workflow</h2>
       <p>After an import or migration, source-to-target comparison often uses the same key columns, mapped fields and normalization options. Saving those settings makes post-load verification part of the workflow rather than an optional afterthought.</p>
 
-      <h2>7. Keep raw data out of the configuration container</h2>
+      <h2>7. Add quality gates to the reusable workflow</h2>
+      <p>Decide which failures should stop the pipeline and which should only require review. In RowMend, contract errors can stop the workflow before import validation, while invalid rows can block SQL output by default. Making those gates explicit keeps recurring decisions consistent.</p>
+
+      <h2>8. Keep raw data out of the configuration container</h2>
       <p>A reusable project does not need to become a second data store. Configuration, rules and structural summaries can be portable without embedding the source CSV or Excel rows. This keeps the workflow lightweight and reduces unnecessary data retention.</p>
+
+      <h2>9. Keep lightweight run history, not a second copy of the dataset</h2>
+      <p>A recurring workflow benefits from remembering whether previous runs passed, how many rows were processed and how many warnings or errors occurred. That history can stay useful without retaining the raw source rows, generated SQL or row-level validation values.</p>
 
       <section style="margin-top:56px;padding:28px;border:1px solid rgba(127,127,127,.24);border-radius:18px">
         <div class="eyebrow">LOCAL PROJECTS</div>
         <h2 style="margin-top:10px">Keep the RowMend workflow together</h2>
         <p>RowMend Local Projects can bundle a structural profile snapshot, cleanup recipe, data contract, import setup and migration preset in browser storage. Workflow Runner can then execute the configured steps from one file load and keep a compact local history without storing source rows.</p>
-        <p><a class="btn primary" href="/projects/">Open Local Projects & Workflow Runner</a></p>
+        <p>If you want to understand the full path before configuring your own project, the built-in demo creates a preconfigured workflow and demo dataset for you.</p>
+        <p><a class="btn primary" href="/projects/">Open Local Projects & Workflow Runner</a> <a class="btn ghost" href="/guides/workflow-runner-quick-start/">Read the quick start</a></p>
       </section>
 
       <p style="margin-top:36px">For individual steps, see the guides on <a href="/guides/profile-csv-data-before-import/">profiling CSV data</a>, <a href="/guides/clean-csv-data-before-database-import/">cleaning CSV data</a>, and <a href="/guides/data-contract-schema-drift-csv/">detecting schema drift with data contracts</a>.</p>
