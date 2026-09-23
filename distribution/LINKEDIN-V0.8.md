@@ -1,27 +1,31 @@
-# LinkedIn draft — RowMend 0.8
+# LinkedIn — RowMend 0.8
 
-I have been pushing RowMend in a direction that is a little different from a typical “CSV utility”.
+I’ve spent the last few weeks changing RowMend quite a bit.
 
-The problem I want to solve is recurring data work.
+It started as a small tool for checking CSV/Excel imports and generating SQL. Useful, but too narrow.
 
-A CSV or Excel feed may arrive every week or every month, but the work around it is usually the same:
+The problem I kept coming back to was everything that happens around a recurring file before it reaches the database.
 
-profile it → clean it → check that the schema still makes sense → validate the rows → prepare the import → verify the result.
+A supplier sends the “same” file again. One column has changed name. A key that was unique last month is no longer unique. A date format changes. Someone fixes it manually in Excel. Next month the same work starts again.
 
-The latest RowMend workflow lets you keep that configuration in a Local Project and run a new file through:
+So I moved RowMend toward a repeatable workflow instead of another one-off CSV utility.
+
+The current flow is:
 
 **Profile → Clean → Contract → Validate → SQL Output**
 
-from one file load.
+You can keep the configuration in a Local Project and run the next delivery through it from one file load.
 
-The design constraint is still the same: processing stays in the browser, there is no mandatory account, and the source file is not intentionally uploaded to a RowMend backend.
+A few choices I wanted to keep:
+- files are processed in the browser;
+- no account is required;
+- source data is not intentionally uploaded to a RowMend backend;
+- the browser-side workflow is free.
 
-I am keeping the browser-side workflow broadly free. The part I eventually see as paid is operational leverage: scheduled runs, cloud history, alerts, shared projects and governance.
+There’s also a preconfigured demo now, so you can see the whole pipeline without setting anything up first.
 
-For now I am trying to validate a simpler question:
+I’m at the point where I need real edge cases more than more ideas.
 
-**Do people who deal with recurring vendor/customer CSV or Excel files actually want this workflow model?**
-
-If that sounds familiar, I would value feedback — especially the failure modes that are hardest to catch before an import.
+If you regularly receive CSV/Excel files from suppliers, customers or partners, I’d be interested in what tends to break in practice.
 
 https://rowmend.netlify.app/?utm_source=linkedin&utm_medium=social&utm_campaign=v080_launch

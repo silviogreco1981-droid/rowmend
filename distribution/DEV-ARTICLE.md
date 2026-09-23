@@ -1,149 +1,207 @@
+# DEV Community authoring notes — do not publish this file verbatim
+
+DEV's current AI-assisted-content guidance asks authors to disclose AI assistance, and says AI-assisted/generated articles should not promote the author's own business or product. Because RowMend is the product being promoted, use this file only as internal subject-matter notes.
+
+If publishing on DEV, write the actual article yourself from your own experience and technical knowledge, without copying or editing AI-generated prose. Keep the article useful even if every RowMend link were removed.
+
 ---
-title: From One-Off CSV Fixes to a Repeatable Local Data Workflow
+
+---
+title: I Stopped Treating Recurring CSV Imports as One-Off Files
 published: false
-description: A practical way to turn recurring CSV and Excel cleanup, schema checks, validation and database preparation into a repeatable workflow.
+description: A practical approach to recurring CSV and Excel imports: keep cleanup, schema expectations, validation and output as one repeatable workflow.
 tags: dataengineering, csv, sql, database
 canonical_url: https://rowmend.netlify.app/guides/repeatable-csv-data-workflow/
 ---
 
-A recurring CSV import rarely fails in the same way twice.
+For a long time I thought of CSV imports as a file problem.
 
-The file may arrive every week or every month. The business process calls it the same feed. But one delivery adds a column, another changes a date format, another introduces duplicate keys, and eventually the “simple import” becomes a collection of spreadsheet steps and one-off scripts.
+A file arrives, you inspect it, clean it, fix a couple of values, map the columns, load it, move on.
 
-The useful shift is to stop treating each file as an isolated cleanup task and instead model the **workflow around the file**.
+That works until the file is not really a one-off file.
 
-## 1. Profile before changing anything
+A supplier sends a new version every month. A partner exports the same report every week. An internal team sends another workbook that is supposed to match the previous one.
 
-Before editing values, capture the structure of the incoming dataset.
+At that point the interesting thing is no longer the file. It is the **workflow around the file**.
 
-Useful signals include:
+That distinction changed how I approached the problem.
 
-- row and column count;
-- missing values;
-- uniqueness;
-- exact duplicate rows;
-- inferred types;
-- mixed-type columns;
-- numeric/date ranges;
-- common values.
+## The file changes. The decisions usually do not.
 
-The purpose is not to create a perfect statistical profile. It is to establish enough context to answer a basic question:
+The incoming data may be different each time, but many decisions repeat:
 
-> Does this delivery still resemble the source I expect?
+- trim these columns;
+- normalize this field to lowercase;
+- this column must exist;
+- this identifier must be unique;
+- this field maps to that target column;
+- use this key for MERGE/UPSERT;
+- stop if the schema changes;
+- block SQL if any row fails validation.
 
-## 2. Make cleanup explicit
+Re-entering those decisions on every run is wasteful, and doing them manually makes the process difficult to review later.
 
-Repeated spreadsheet edits are difficult to audit and even harder to reproduce.
+So I started treating those decisions as configuration.
 
-If the same feed repeatedly needs whitespace trimming, case normalization, replacements, column renames or deduplication, turn those operations into an ordered recipe.
+## First: profile before touching the data
 
-A recipe has two advantages:
+Before changing anything, I want a quick picture of the incoming file.
 
-1. the transformation can be repeated;
-2. the assumptions become visible.
+Not a huge statistical report. Just enough to answer questions such as:
 
-That is already better than “open the file and fix the usual things.”
+- how many rows and columns are there?
+- where are values missing?
+- which columns are likely unique?
+- are there exact duplicate rows?
+- did a numeric/date column suddenly become mixed text?
+- is the file structurally similar to the last one?
 
-## 3. Separate cleanup from expectations
+This is useful because cleanup can otherwise hide upstream problems.
 
-Cleanup and validation are different concerns.
+If a column changed type and I immediately coerce it, I may fix the symptom and miss the fact that the source changed.
+
+## Cleanup should be a recipe, not muscle memory
+
+The next recurring problem is manual cleanup.
+
+Everyone has some version of:
+
+> open the spreadsheet, trim this, replace that, rename this header, remove duplicates, save a copy
+
+The trouble is not that those steps are difficult. The trouble is that six weeks later nobody remembers exactly which steps were applied.
+
+An ordered cleanup recipe makes those decisions explicit and repeatable.
+
+For example:
+
+```text
+1. trim NAME and EMAIL
+2. lowercase EMAIL
+3. convert blank CUSTOMER_CODE values to NULL
+4. remove duplicate CUSTOMER_ID rows, keep first
+```
+
+Now the next file can go through the same transformation without rebuilding the process.
+
+## Cleanup and validation are not the same thing
+
+This was one of the more important design choices for me.
 
 A cleanup recipe answers:
 
-> How should this file be normalized?
+> How should this dataset be normalized?
 
 A data contract answers:
 
-> What must still be true after normalization?
+> What must still be true?
 
-Useful contract rules can include:
+Those are different questions.
 
-- expected columns;
-- required columns;
-- expected types;
-- acceptable missing rates;
-- uniqueness expectations;
-- composite keys;
-- row-count boundaries.
+A contract might say:
 
-This distinction matters because you do not want cleanup logic silently hiding an upstream schema change.
+- these columns must exist;
+- CUSTOMER_ID must be numeric and unique;
+- EMAIL may be missing in at most 5% of rows;
+- unexpected columns should be flagged;
+- the file should contain at least 1,000 rows.
 
-## 4. Reuse the import configuration
+The cleanup step should not silently make those expectations disappear.
 
-Recurring feeds usually go to the same destination.
+## Save the import mapping too
 
-That means the source-to-target mapping, validation rules, SQL dialect and merge key are not properties of the individual file. They are properties of the workflow.
+If the file is recurring, chances are the destination is recurring as well.
 
-Save them once.
+That means this:
 
-The next delivery should not require somebody to remember that `customer_code` maps to `CUSTOMER_ID`, that the email field is required, or that `CUSTOMER_ID` is the merge key.
+```text
+customer_code -> CUSTOMER_ID
+company_name  -> NAME
+email_address -> EMAIL
+```
 
-## 5. Add quality gates
+is not really a property of one particular CSV. It is part of the workflow.
 
-Not every issue should have the same consequence.
+The same applies to validation rules, SQL dialect and MERGE/UPSERT key.
 
-Examples:
+Once those are saved, the next file should not need somebody to rebuild the mapping from memory.
 
-- missing required key column → stop;
-- broken data contract → stop before database preparation;
-- invalid email in a non-critical field → review;
-- invalid import rows → export errors and block SQL;
-- warning-only schema drift → continue but surface the warning.
+## Add explicit quality gates
 
-Quality gates make the workflow deterministic instead of operator-dependent.
+Not every warning deserves to stop a pipeline.
 
-## 6. Run the pipeline from one file load
+But some errors probably should.
 
-Once the configuration exists, there is little value in opening five separate tools and loading the same file five times.
+A few examples:
 
-A more natural pipeline is:
+- required key column missing → stop;
+- schema contract broken → stop before import validation;
+- invalid rows present → block SQL output;
+- extra optional column → warn, but continue;
+- minor completeness change → review.
 
-`Load → Profile → Clean → Contract → Validate → Output`
+The value of a quality gate is not that it is sophisticated. It is that the decision is made once and then repeated consistently.
 
-The output can include:
+## One load is better than five tools
 
-- cleaned CSV;
-- validation-error CSV;
-- INSERT SQL;
-- MERGE / UPSERT SQL;
-- a compact run report.
+Once the configuration exists, loading the same file into several separate utilities becomes unnecessary friction.
 
-For post-migration work, a second target dataset can then be used for reconciliation.
+The workflow I ended up with is:
 
-## 7. Keep history without keeping raw data
+```text
+Load
+  ↓
+Profile
+  ↓
+Clean
+  ↓
+Contract
+  ↓
+Validate
+  ↓
+Output
+```
 
-For recurring workflows, the result of the previous run is useful even when the previous source file is not retained.
+The output might be cleaned CSV, an error file, INSERT statements, MERGE/UPSERT statements or a compact run report.
 
-A privacy-minimized local history can keep aggregate information such as:
+For migration work, a separate source-vs-target comparison can then check what actually arrived on the other side.
 
-- run status;
-- row counts;
-- invalid-row count;
-- contract warning/error count;
+## Keep history without keeping the source data
+
+For recurring jobs, previous runs are useful.
+
+But that does not mean the tool has to become another repository of source files.
+
+A small local history can keep things like:
+
+- PASS / REVIEW_REQUIRED;
+- input/output row counts;
+- invalid row count;
+- contract warnings/errors;
 - duration.
 
-That is enough to start spotting trends without turning the tool into another data store.
+That gives enough context to notice that a feed suddenly shrank or started failing without storing the original rows again.
 
-## A concrete implementation
+## Why I built RowMend this way
 
-I have been implementing this model in **RowMend**, a local-first browser tool.
+I’ve been implementing this approach in a browser tool called **RowMend**.
 
-The current version includes:
+The current version has:
 
-- Data Profiler;
-- Clean & Transform recipes;
-- Data Contracts;
-- Import Checker and SQL generation;
-- Migration Check;
+- profiling;
+- cleanup recipes;
+- data contracts;
+- import validation and SQL generation;
+- migration reconciliation;
 - Local Projects;
-- Workflow Runner with local run history.
+- Workflow Runner;
+- local run history.
 
-The important architectural constraint is that the data operations run in the browser. There is no required account and source files are not intentionally uploaded to a RowMend application backend.
+The deliberate constraint is that the data operations happen in the browser. There is no mandatory account and source files are not intentionally uploaded to a RowMend application backend.
 
-You can try the workflow here:
+If you want to see the complete path, there is now a preconfigured demo:
 
-https://rowmend.netlify.app/guides/repeatable-csv-data-workflow/?utm_source=devto&utm_medium=article&utm_campaign=v080_workflow_runner
+https://rowmend.netlify.app/?utm_source=devto&utm_medium=article&utm_campaign=v080_workflow_runner
 
-The next question I am trying to answer is whether local run history should evolve into data-drift insights: comparing row counts, completeness, uniqueness and contract violations between recurring deliveries.
+I’m less interested in adding another dozen transforms right now than in finding out where this workflow model breaks in real life.
 
-If you work with recurring CSV/Excel imports, I would be interested in what changes most often between deliveries and which failure mode is hardest to detect early.
+If you deal with recurring CSV/Excel deliveries, what changes most often between runs? And which failures are the hardest to catch before the import starts?
