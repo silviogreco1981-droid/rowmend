@@ -1,0 +1,67 @@
+name: Package RowMend 0.8.0 Acquisition Ready
+
+on:
+  push:
+    branches:
+      - package/v0.8.0-acquisition-ready
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Netlify deploy directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf deploy
+          mkdir -p deploy
+
+          cp BingSiteAuth.xml deploy/
+          cp _headers deploy/
+          cp analytics.js deploy/
+          cp app.js deploy/
+          cp contract-core.js deploy/
+          cp data-core.js deploy/
+          cp favicon.svg deploy/
+          cp feedback.js deploy/
+          cp googleb35d94e56dde524b.html deploy/
+          cp index.html deploy/
+          cp migration-core.js deploy/
+          cp onboarding.js deploy/
+          cp privacy.html deploy/
+          cp project-context.js deploy/
+          cp project-core.js deploy/
+          cp robots.txt deploy/
+          cp sample-customers.csv deploy/
+          cp sitemap.xml deploy/
+          cp styles.css deploy/
+          cp terms.html deploy/
+          cp toolbox.css deploy/
+          cp workflow-core.js deploy/
+
+          cp -R clean-data deploy/
+          cp -R profile-data deploy/
+          cp -R data-contract deploy/
+          cp -R migration-check deploy/
+          cp -R projects deploy/
+          cp -R guides deploy/
+
+          test -f deploy/index.html
+          test -f deploy/projects/run/index.html
+          test -f deploy/workflow-core.js
+          test -f deploy/guides/messy-vendor-csv-excel-imports/index.html
+          test -f deploy/sitemap.xml
+
+      - name: Upload Netlify deploy package
+        uses: actions/upload-artifact@v4
+        with:
+          name: rowmend-0.8.0-acquisition-ready-netlify-deploy
+          path: deploy/
+          if-no-files-found: error
+          retention-days: 7
