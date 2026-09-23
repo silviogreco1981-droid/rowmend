@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RowMend Guides — CSV, Excel, Data Contracts & Migration Checks</title>
+  <meta name="description" content="Practical RowMend guides for repeatable CSV/Excel workflows, profiling, cleanup, data contracts, database imports and post-migration reconciliation." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/guides/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="RowMend Guides" />
+  <meta property="og:description" content="Practical guides for safer recurring CSV and Excel data operations." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://rowmend.netlify.app/guides/" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/toolbox.css" />
+  <script defer src="/analytics.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/projects/">Projects</a><a href="/profile-data/">Profile</a><a href="/clean-data/">Clean</a><a href="/data-contract/">Contract</a><a href="/migration-check/">Compare</a><a href="/#tool">Import</a></nav>
+  </header>
+
+  <main class="shell" style="padding:72px 0 96px">
+    <section style="max-width:850px;margin-bottom:48px">
+      <div class="eyebrow">ROWMEND GUIDES</div>
+      <h1 style="font-size:clamp(42px,7vw,72px);letter-spacing:-.05em;line-height:.98;margin:18px 0 24px">Practical guides for safer data workflows</h1>
+      <p class="lede">Start with the complete Workflow Runner path or jump directly to the problem you are solving: profiling, cleanup, schema drift, database import or migration reconciliation.</p>
+    </section>
+
+    <section class="toolbox-home-grid">
+      <a class="toolbox-home-card" href="/guides/workflow-runner-quick-start/">
+        <span>START HERE</span>
+        <h3>Workflow Runner quick start</h3>
+        <p>Use the preconfigured demo, understand quality gates and see Profile → Clean → Contract → Validate → Output end to end.</p>
+        <strong>Open quick start →</strong>
+      </a>
+
+      <a class="toolbox-home-card" href="/guides/repeatable-csv-data-workflow/">
+        <span>WORKFLOW DESIGN</span>
+        <h3>Build a repeatable CSV workflow</h3>
+        <p>Separate data from reusable configuration and turn recurring cleanup, contracts and mappings into a workflow.</p>
+        <strong>Read the guide →</strong>
+      </a>
+
+      <a class="toolbox-home-card" href="/guides/messy-vendor-csv-excel-imports/">
+        <span>RECURRING FEEDS</span>
+        <h3>Handle messy vendor files</h3>
+        <p>Deal with changing headers, missing values, duplicates, type drift and repeated one-off spreadsheet fixes.</p>
+        <strong>Read the guide →</strong>
+      </a>
+
+      <a class="toolbox-home-card" href="/guides/profile-csv-data-before-import/">
+        <span>PROFILE</span>
+        <h3>Profile CSV before import</h3>
+        <p>Inspect completeness, uniqueness, duplicate rows, inferred types and ranges before making changes.</p>
+        <strong>Read the guide →</strong>
+      </a>
+
+      <a class="toolbox-home-card" href="/guides/clean-csv-data-before-database-import/">
+        <span>CLEAN</span>
+        <h3>Clean CSV deliberately</h3>
+        <p>Turn repeated transformations into explicit, reviewable cleanup steps instead of manual spreadsheet edits.</p>
+        <strong>Read the guide →</strong>
+      </a>
+
+      <a class="toolbox-home-card" href="/guides/data-contract-schema-drift-csv/">
+        <span>CONTRACT</span>
+        <h3>Detect schema drift</h3>
+        <p>Use data contracts to catch missing columns, type changes, null-rate drift, uniqueness failures and key problems.</p>
+        <strong>Read the guide →</strong>
+      </a>
+
+      <a class="toolbox-home-card" href="/guides/validate-csv-excel-before-database-import/">
+        <span>VALIDATE</span>
+        <h3>Validate before database import</h3>
+        <p>Review schema, mappings, required values, duplicate keys, types and invalid rows before generating SQL.</p>
+        <strong>Read the guide →</strong>
+      </a>
+
+      <a class="toolbox-home-card" href="/guides/validate-data-after-database-migration/">
+        <span>RECONCILE</span>
+        <h3>Validate after migration</h3>
+        <p>Compare source and target data after a migration instead of relying only on row counts or successful jobs.</p>
+        <strong>Read the guide →</strong>
+      </a>
+
+      <a class="toolbox-home-card" href="/guides/find-missing-records-after-csv-import/">
+        <span>DIAGNOSE</span>
+        <h3>Find missing records after import</h3>
+        <p>Use keys and source-to-target comparison to find records that disappeared, appeared unexpectedly or changed.</p>
+        <strong>Read the guide →</strong>
+      </a>
+    </section>
+
+    <section class="privacy" style="margin-top:72px">
+      <div><div class="eyebrow">LOCAL-FIRST</div><h2>Use the guide, then try the workflow on your own data.</h2></div>
+      <div><p>RowMend's data operations run in your browser. You can use the standalone tools for one-off work or Local Projects and Workflow Runner for recurring processes.</p><p><a class="btn primary" href="/projects/">Open Local Projects</a></p></div>
+    </section>
+  </main>
+
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>MVP 0.8.0 · practical data workflow guides</p><div><a href="/">Home</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+</body>
+</html>
