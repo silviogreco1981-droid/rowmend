@@ -245,11 +245,9 @@
       }, { label:'PostgreSQL vendor import' });
 
       state.project = project;
-      renderList();
-      selectProject(project.id);
-      setMessage('Demo project created. Click “Run project”, then use the demo dataset in Workflow Runner.', 'success');
-      track('project_created', { demo:true });
+      core.setActiveProject(project.id);
       track('project_demo_created', { configured:core.projectCompletion(project).configured });
+      window.location.href = core.projectUrl('/projects/run/', project.id) + '&demo=1';
     } catch (error) {
       setMessage(error.message || 'Unable to create the demo project.', 'error');
     }
