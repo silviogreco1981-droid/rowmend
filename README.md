@@ -242,6 +242,8 @@ The repository includes a small **[CSV Import Test Kit](./test-kit/)** with deli
 
 The kit includes examples for missing required values, duplicate keys, invalid values, and schema drift. It can be used with RowMend or with other ETL/import validation workflows.
 
+For RowMend 0.8, the repository also includes a **[Workflow Runner demo](./test-kit/workflow-demo/)** with an importable Local Project and three files that exercise PASS, validation-error, and schema-drift quality-gate paths end to end.
+
 ## Branding note
 
 **RowMend** is currently a working product name. Formal trademark/domain clearance should be completed before material commercial investment in the brand.
