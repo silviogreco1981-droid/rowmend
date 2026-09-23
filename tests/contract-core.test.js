@@ -116,6 +116,16 @@ assert.strictEqual(contractCore.validateContract(contract), true);
 
 {
   const invalid = contractCore.cloneContract(contract);
+  invalid.settings.minRows = 10;
+  invalid.settings.maxRows = 5;
+  let failed = false;
+  try { contractCore.validateContract(invalid); }
+  catch (error) { failed = /maximum row count/i.test(error.message); }
+  assert.ok(failed);
+}
+
+{
+  const invalid = contractCore.cloneContract(contract);
   invalid.contractVersion = 99;
   let failed = false;
   try { contractCore.validateContract(invalid); }
