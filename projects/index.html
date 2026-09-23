@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Local Projects — RowMend</title>
+  <meta name="description" content="Bundle RowMend profiling, cleanup recipes, data contracts, import mappings and migration presets into reusable local projects without uploading datasets." />
+  <meta name="robots" content="noindex,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/projects/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/toolbox.css" />
+  <link rel="stylesheet" href="/projects/projects.css" />
+  <script defer src="/analytics.js"></script>
+  <script defer src="/project-core.js"></script>
+  <script defer src="/projects/projects.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/projects/" aria-current="page">Projects</a><a href="/profile-data/">Profile</a><a href="/clean-data/">Clean</a><a href="/data-contract/">Contract</a><a href="/migration-check/">Compare</a><a href="/#tool">Import</a></nav>
+  </header>
+
+  <main>
+    <section class="projects-hero shell">
+      <div class="eyebrow">LOCAL PROJECTS · V0.7.0</div>
+      <h1>Turn separate tools into a <span>repeatable workflow.</span></h1>
+      <p class="lede">Bundle profiling evidence, cleanup recipes, data contracts, import mappings and migration presets into a reusable local project — without storing the source datasets in RowMend.</p>
+      <div class="trust-row"><span>✓ Browser-only persistence</span><span>✓ Exportable project JSON</span><span>✓ No account required</span></div>
+    </section>
+
+    <section class="shell projects-layout">
+      <aside class="projects-card projects-sidebar">
+        <div class="eyebrow">NEW PROJECT</div>
+        <div class="projects-create">
+          <input id="newProjectName" placeholder="e.g. Monthly supplier import" maxlength="120" />
+          <textarea id="newProjectDescription" placeholder="What does this workflow do?"></textarea>
+          <button class="btn primary full" id="createProject" type="button">Create local project</button>
+        </div>
+
+        <div class="project-note">
+          <strong>What a project stores</strong>
+          <p>Configuration and profile summaries only: cleanup steps, contracts, mappings and comparison settings. RowMend does not put the uploaded dataset itself inside the project.</p>
+        </div>
+
+        <div class="projects-list" id="projectsList"></div>
+
+        <label class="mini-btn full" for="importProjectFile" style="cursor:pointer;margin-top:14px">Import project JSON</label>
+        <input class="project-import" id="importProjectFile" type="file" accept=".json,application/json" />
+        <div class="toolbox-message" id="projectsMessage" aria-live="polite"></div>
+      </aside>
+
+      <section class="projects-card projects-main">
+        <div class="projects-empty" id="projectEmpty">
+          <strong>Select or create a project</strong>
+          <span>A project becomes the local container for a recurring RowMend workflow.</span>
+        </div>
+
+        <div class="projects-editor hidden" id="projectEditor">
+          <div class="project-editor-head">
+            <div>
+              <div class="eyebrow">ACTIVE LOCAL PROJECT</div>
+              <h2 id="projectTitle"></h2>
+              <p id="projectDates"></p>
+            </div>
+            <div class="project-editor-actions">
+              <button class="mini-btn" id="saveProjectMeta" type="button">Save details</button>
+              <button class="mini-btn" id="duplicateProject" type="button">Duplicate</button>
+              <button class="mini-btn" id="exportProject" type="button">Export JSON</button>
+            </div>
+          </div>
+
+          <div class="project-meta-grid">
+            <div class="field-group">
+              <label for="projectName">Project name</label>
+              <input id="projectName" maxlength="120" />
+            </div>
+            <div class="field-group">
+              <label for="projectDescription">Description</label>
+              <textarea id="projectDescription"></textarea>
+            </div>
+          </div>
+
+          <div class="project-progress">
+            <div class="project-progress-head"><strong>Workflow configuration</strong><span id="projectProgressText"></span></div>
+            <div class="project-progress-track"><i id="projectProgressBar"></i></div>
+          </div>
+
+          <div class="project-workflow">
+            <article class="project-step" id="stepProfile">
+              <span class="project-step-number">01 · PROFILE</span>
+              <h3>Data profile</h3>
+              <p>Keep a structural snapshot of the dataset you profiled, without raw row contents.</p>
+              <div class="artifact-state" id="profileArtifact"></div>
+              <div class="project-step-actions">
+                <a class="btn secondary" id="openProfileTool" href="/profile-data/">Open Profiler</a>
+                <button class="mini-btn danger hidden" id="clearProfileArtifact" type="button">Remove snapshot</button>
+              </div>
+            </article>
+
+            <article class="project-step" id="stepClean">
+              <span class="project-step-number">02 · CLEAN</span>
+              <h3>Cleanup recipe</h3>
+              <p>Attach reusable transformations for recurring files.</p>
+              <div class="artifact-state" id="cleanArtifact"></div>
+              <div class="artifact-attach">
+                <select class="artifact-select" id="cleanRecipeSelect"><option value="">Saved local recipes</option></select>
+                <button class="mini-btn" id="attachCleanRecipe" type="button">Attach selected recipe</button>
+              </div>
+              <div class="project-step-actions">
+                <a class="btn secondary" id="openCleanTool" href="/clean-data/">Open Clean & Transform</a>
+                <button class="mini-btn danger hidden" id="clearCleanArtifact" type="button">Remove recipe</button>
+              </div>
+            </article>
+
+            <article class="project-step" id="stepContract">
+              <span class="project-step-number">03 · CONTRACT</span>
+              <h3>Data contract</h3>
+              <p>Keep schema and data-quality expectations with the workflow.</p>
+              <div class="artifact-state" id="contractArtifact"></div>
+              <div class="artifact-attach">
+                <select class="artifact-select" id="contractSelect"><option value="">Saved local contracts</option></select>
+                <button class="mini-btn" id="attachContract" type="button">Attach selected contract</button>
+              </div>
+              <div class="project-step-actions">
+                <a class="btn secondary" id="openContractTool" href="/data-contract/">Open Data Contract</a>
+                <button class="mini-btn danger hidden" id="clearContractArtifact" type="button">Remove contract</button>
+              </div>
+            </article>
+
+            <article class="project-step" id="stepImport">
+              <span class="project-step-number">04 · IMPORT</span>
+              <h3>Validation & SQL setup</h3>
+              <p>Store target mapping, validation rules, SQL dialect and merge key.</p>
+              <div class="artifact-state" id="importArtifact"></div>
+              <div class="artifact-attach">
+                <select class="artifact-select" id="importProfileSelect"><option value="">Saved import profiles</option></select>
+                <button class="mini-btn" id="attachImportProfile" type="button">Attach selected profile</button>
+              </div>
+              <div class="project-step-actions">
+                <a class="btn secondary" id="openImportTool" href="/#tool">Open Import Checker</a>
+                <button class="mini-btn danger hidden" id="clearImportArtifact" type="button">Remove import setup</button>
+              </div>
+            </article>
+
+            <article class="project-step" id="stepMigration">
+              <span class="project-step-number">05 · RECONCILE</span>
+              <h3>Migration preset</h3>
+              <p>Keep source-to-target mapping, comparison flags and key selection.</p>
+              <div class="artifact-state" id="migrationArtifact"></div>
+              <div class="project-step-actions">
+                <a class="btn secondary" id="openMigrationTool" href="/migration-check/">Open Migration Check</a>
+                <button class="mini-btn danger hidden" id="clearMigrationArtifact" type="button">Remove preset</button>
+              </div>
+            </article>
+          </div>
+
+          <div class="project-note">
+            <strong>Project portability</strong>
+            <p>Exporting a project creates a JSON file with configuration and profile summaries. It intentionally excludes CSV/Excel row data, generated SQL and migration issue rows.</p>
+          </div>
+
+          <div class="project-danger">
+            <div><strong>Delete this local project</strong><p>This removes only the project container. Standalone recipes, contracts and import profiles remain in their existing local stores.</p></div>
+            <button class="mini-btn danger" id="deleteProject" type="button">Delete project</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="shell toolbox-note">
+      <div class="privacy">
+        <div><div class="eyebrow">WHY PROJECTS</div><h2>Move from one-off fixes to repeatable local operations.</h2></div>
+        <div><p>The same monthly or weekly file usually needs the same cleanup, schema expectations, validation rules and downstream checks. Local Projects keeps those decisions together so the workflow is easier to repeat.</p><p class="muted">The future cloud/Team layer can build on this model with synchronized workspaces, history, schedules, permissions and audit trails — without taking away the free local project workflow.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>MVP 0.7.0 · local-first workflow projects</p><div><a href="/">Home</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+</body>
+</html>
