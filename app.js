@@ -485,7 +485,7 @@
   ['dragenter','dragover'].forEach(ev=>dropzone.addEventListener(ev,e=>{e.preventDefault();dropzone.classList.add('drag')}));
   ['dragleave','drop'].forEach(ev=>dropzone.addEventListener(ev,e=>{e.preventDefault();dropzone.classList.remove('drag')}));
   dropzone.addEventListener('drop',e=>e.dataTransfer.files[0]&&onFile(e.dataTransfer.files[0]));
-  $('loadDemo').addEventListener('click',loadDemoTracked); $('loadDemoHero').addEventListener('click',()=>{loadDemoTracked();location.hash='tool'});
+  $('loadDemo').addEventListener('click',loadDemoTracked); $('loadDemoHero')?.addEventListener('click',()=>{loadDemoTracked();location.hash='tool'});
   $('generateInsert').addEventListener('click',generateInsert); $('generateMerge').addEventListener('click',generateMerge);
   $('dialect').addEventListener('change',()=>{if(state.rows.length)renderDerived();});
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>activateTab(b.dataset.tab)));
