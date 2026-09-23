@@ -1,8 +1,8 @@
 # RowMend
 
-**Profile, clean, validate, generate and reconcile data locally in your browser.**
+**Profile, clean, contract, validate, generate and reconcile data locally in your browser.**
 
-RowMend is a local-first data operations toolbox. It profiles CSV/Excel datasets, builds repeatable cleanup recipes, validates import files, maps columns, generates SQL for Oracle, SQL Server and PostgreSQL, and reconciles source-vs-target data after a migration.
+RowMend is a local-first data operations toolbox. It profiles CSV/Excel datasets, builds repeatable cleanup recipes, creates reusable data contracts for schema drift checks, validates import files, maps columns, generates SQL for Oracle, SQL Server and PostgreSQL, and reconciles source-vs-target data after a migration.
 
 **Try it:** https://rowmend.netlify.app/?utm_source=github&utm_medium=referral&utm_campaign=repository
 
@@ -34,6 +34,13 @@ It helps you answer questions like:
 - Preview before/after data and export the transformed CSV.
 - Save reusable recipes in browser localStorage.
 
+### Data Contract & Schema Guard
+- Generate an editable contract from a known-good CSV, TSV or Excel baseline.
+- Check expected columns, inferred types, missing-value thresholds and uniqueness rules.
+- Define composite keys and detect duplicate key groups.
+- Optionally flag unexpected columns and row-count drift.
+- Save contracts locally, export/import them as JSON, and export contract issues as CSV.
+
 
 - Compare **source and target CSV/TSV** datasets after a migration using one or more key columns.
 - Detect **missing, extra, changed, and duplicate** records with browser-only reconciliation.
@@ -57,9 +64,9 @@ It helps you answer questions like:
 
 Your spreadsheet is not uploaded to a RowMend application backend.
 
-Parsing, validation, mapping, local profile storage, and SQL generation happen in the browser. The current MVP has no application account system and no backend database.
+Profiling, cleaning, data-contract checks, validation, mapping, local profile storage, and SQL generation happen in the browser. The current MVP has no application account system and no backend database.
 
-Minimal product analytics are used to understand whether people reach useful actions such as profiling a dataset, applying transformations, loading a file, generating SQL, exporting cleaned data, comparing migrations, or saving a local profile/recipe. RowMend does not intentionally send uploaded file contents, filenames, column names, generated SQL, target table names, validation results, profile names, or data values to analytics.
+Minimal product analytics are used to understand whether people reach useful actions such as profiling a dataset, applying transformations, checking a data contract, loading a file, generating SQL, exporting cleaned data, comparing migrations, or saving a local profile/recipe/contract. RowMend does not intentionally send uploaded file contents, filenames, column names, generated SQL, target table names, validation results, profile names, or data values to analytics.
 
 See the live privacy notice for details.
 
@@ -81,6 +88,14 @@ See the live privacy notice for details.
 4. Review the before/after preview and row-count impact.
 5. Save the recipe locally or export the cleaned CSV.
 
+
+### Data Contract
+
+1. Open https://rowmend.netlify.app/data-contract/?utm_source=github&utm_medium=referral&utm_campaign=repository
+2. Load a known-good baseline or use the sample.
+3. Generate and edit the proposed contract rules.
+4. Save locally or export the contract JSON.
+5. Load a new dataset and run the schema/data-quality contract check.
 
 ### Migration Check
 
@@ -155,9 +170,9 @@ The key product question is not simply whether people can generate SQL. It is wh
 Potential future Pro / Team capabilities include:
 
 - shared reusable mapping, cleanup and validation profiles;
-- richer validation rules and schema contracts;
+- shared/versioned data contracts, richer validation rules and schema history;
 - batch processing;
-- audit and exportable quality reports;
+- scheduled contract checks, alerts, audit and exportable quality reports;
 - reusable import recipes;
 - CLI / API / CI integration;
 - centralized team workflows and governance.

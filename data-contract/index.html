@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Data Contract & Schema Guard — RowMend</title>
+  <meta name="description" content="Create a local data contract from a known-good CSV or Excel file, then detect schema drift, type changes, missing values, uniqueness failures and duplicate keys." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/data-contract/" />
+  <meta property="og:title" content="Data Contract & Schema Guard — RowMend" />
+  <meta property="og:description" content="Turn a known-good dataset into a reusable local contract and catch drift before the next import." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://rowmend.netlify.app/data-contract/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/toolbox.css" />
+  <link rel="stylesheet" href="/data-contract/data-contract.css" />
+  <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script defer src="/analytics.js"></script>
+  <script defer src="/data-core.js"></script>
+  <script defer src="/contract-core.js"></script>
+  <script defer src="/data-contract/data-contract.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/profile-data/">Profile</a><a href="/clean-data/">Clean</a><a href="/data-contract/" aria-current="page">Contract</a><a href="/migration-check/">Compare</a><a href="/#tool">Import</a><a href="/#pricing">Pro</a></nav>
+  </header>
+
+  <main>
+    <section class="contract-hero shell">
+      <div class="eyebrow">DATA CONTRACT · SCHEMA GUARD · V0.6.0</div>
+      <h1>Turn a good file into a <span>repeatable contract.</span></h1>
+      <p class="lede">Create a baseline from CSV or Excel, define the structure you expect, and catch schema drift, type changes, missing values, uniqueness failures and duplicate keys before the next import.</p>
+      <div class="trust-row"><span>✓ No signup</span><span>✓ No file upload</span><span>✓ Contracts stay local</span></div>
+    </section>
+
+    <section class="shell workflow-strip" aria-label="RowMend workflow">
+      <a href="/profile-data/"><strong>1. Profile</strong>Understand shape & quality</a>
+      <a href="/clean-data/"><strong>2. Clean</strong>Transform and normalize</a>
+      <a class="active" href="/data-contract/"><strong>3. Contract</strong>Define what must stay true</a>
+      <a href="/#tool"><strong>4. Validate & Generate</strong>Prepare the import</a>
+      <a href="/migration-check/"><strong>5. Compare</strong>Source vs target</a>
+      <a href="/migration-check/"><strong>6. Reconcile</strong>Review migration issues</a>
+    </section>
+
+    <section class="shell contract-flow">
+      <div class="contract-stage">
+        <div class="contract-stage-head">
+          <div><div class="eyebrow">STEP 1 · BASELINE</div><h2>Start from a known-good dataset</h2></div>
+          <span class="local-badge">● processed locally</span>
+        </div>
+        <div class="contract-stage-body contract-grid">
+          <div>
+            <label class="contract-drop" id="baselineDrop" for="baselineFile">
+              <input id="baselineFile" type="file" accept=".csv,.tsv,.xlsx,.xls" hidden />
+              <span class="upload-icon">⇧</span>
+              <strong>Drop baseline CSV or Excel</strong>
+              <small>Use a file you consider structurally correct</small>
+              <small class="muted">CSV · TSV · XLSX · XLS</small>
+            </label>
+            <button class="text-btn" id="loadContractDemo" type="button">Use known-good sample dataset</button>
+            <div class="contract-file-summary" id="baselineSummary"><span>No baseline loaded.</span></div>
+          </div>
+          <div>
+            <div class="field-group">
+              <label for="contractDelimiter">CSV delimiter</label>
+              <select id="contractDelimiter">
+                <option value="auto">Auto detect</option>
+                <option value=",">Comma (,)</option>
+                <option value=";">Semicolon (;)</option>
+                <option value="tab">Tab</option>
+                <option value="|">Pipe (|)</option>
+              </select>
+            </div>
+            <div class="contract-summary-note">RowMend uses the baseline profile to propose expected types, missing-value thresholds and identifier-like uniqueness rules. You can edit every rule before saving the contract.</div>
+            <div class="contract-actions">
+              <button class="btn secondary" id="generateContract" type="button" disabled>Generate contract from baseline</button>
+              <label class="mini-btn" for="importContractFile" style="cursor:pointer">Import contract JSON</label>
+              <input class="contract-json-import" id="importContractFile" type="file" accept=".json,application/json" />
+            </div>
+            <div class="contract-message" id="contractMessage" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contract-stage" id="contractEditorStage">
+        <div class="contract-stage-head">
+          <div><div class="eyebrow">STEP 2 · CONTRACT</div><h2>Define what must stay true</h2></div>
+          <span class="muted">All settings remain editable</span>
+        </div>
+        <div class="contract-stage-body">
+          <div class="contract-empty" id="contractEmpty">
+            <strong>No contract yet</strong>
+            <span>Generate one from a baseline or import a contract JSON file.</span>
+          </div>
+
+          <div id="contractEditor" class="hidden">
+            <div class="contract-settings">
+              <div class="field-group">
+                <label for="contractName">Contract name</label>
+                <input id="contractName" placeholder="Monthly supplier import" />
+              </div>
+              <div class="field-group">
+                <label for="minRows">Minimum rows</label>
+                <input id="minRows" type="number" min="0" step="1" />
+              </div>
+              <div class="field-group">
+                <label for="maxRows">Maximum rows</label>
+                <input id="maxRows" type="number" min="0" step="1" placeholder="No maximum" />
+              </div>
+              <label class="contract-toggle"><input id="strictColumns" type="checkbox" checked /> Flag unexpected columns</label>
+            </div>
+
+            <div class="contract-table-wrap">
+              <table class="contract-table">
+                <thead>
+                  <tr>
+                    <th>Key</th>
+                    <th>Column</th>
+                    <th>Expected type</th>
+                    <th>Required</th>
+                    <th>Unique</th>
+                    <th>Max missing %</th>
+                    <th>Max mixed-type %</th>
+                  </tr>
+                </thead>
+                <tbody id="contractRules"></tbody>
+              </table>
+            </div>
+
+            <div class="contract-actions">
+              <button class="btn primary" id="saveContractLocal" type="button">Save contract locally</button>
+              <button class="btn secondary" id="exportContract" type="button">Export contract JSON</button>
+            </div>
+
+            <div class="contract-storage">
+              <input id="savedContractName" placeholder="Save as…" />
+              <button class="mini-btn" id="saveContractAs" type="button">Save as</button>
+              <select id="savedContracts"><option value="">Saved contracts</option></select>
+              <button class="mini-btn" id="loadSavedContract" type="button">Load</button>
+              <button class="mini-btn danger" id="deleteSavedContract" type="button">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contract-stage">
+        <div class="contract-stage-head">
+          <div><div class="eyebrow">STEP 3 · CHECK</div><h2>Run a new dataset against the contract</h2></div>
+          <span class="muted">PASS or REVIEW REQUIRED</span>
+        </div>
+        <div class="contract-stage-body contract-grid">
+          <div>
+            <label class="contract-drop" id="candidateDrop" for="candidateFile">
+              <input id="candidateFile" type="file" accept=".csv,.tsv,.xlsx,.xls" hidden />
+              <span class="upload-icon">⇧</span>
+              <strong>Drop the new dataset</strong>
+              <small>Compare it with the active contract</small>
+              <small class="muted">CSV · TSV · XLSX · XLS</small>
+            </label>
+            <button class="text-btn" id="loadCandidateDemo" type="button">Use drifted sample dataset</button>
+            <div class="contract-file-summary" id="candidateSummary"><span>No candidate loaded.</span></div>
+          </div>
+          <div>
+            <div class="contract-empty" id="checkPrompt">
+              <strong>Contract + candidate required</strong>
+              <span>Load or create a contract, then load the dataset you want to verify.</span>
+            </div>
+            <div id="checkAction" class="hidden">
+              <p>The check validates expected columns, inferred types, missing-value thresholds, uniqueness rules, composite-key duplicates and optional row-count limits.</p>
+              <button class="btn primary" id="runContractCheck" type="button">Run contract check</button>
+              <div class="contract-message" id="checkMessage" aria-live="polite"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contract-stage hidden" id="contractResultsStage">
+        <div class="contract-stage-head">
+          <div><div class="eyebrow">RESULT</div><h2>Contract check report</h2></div>
+          <button class="mini-btn" id="exportContractIssues" type="button">Export issues CSV</button>
+        </div>
+        <div class="contract-stage-body">
+          <div id="contractStatus" class="contract-status"></div>
+          <div id="contractMetrics" class="contract-metrics"></div>
+          <div class="migration-table-wrap">
+            <table>
+              <thead><tr><th>Severity</th><th>Issue</th><th>Column / key</th><th>Details</th></tr></thead>
+              <tbody id="contractIssues"></tbody>
+            </table>
+          </div>
+          <div class="contract-empty hidden" id="noContractIssues">
+            <strong>No contract violations detected</strong>
+            <span>The candidate dataset satisfies the active local contract.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="contract-pro">
+        <div>
+          <div class="eyebrow">NATURAL PRO PATH</div>
+          <h3>Manual local checks stay useful. Automation is where Pro begins.</h3>
+          <p>Future paid capabilities can add contract version history, scheduled checks, alerts, CI/API execution, shared team contracts and audit trails without removing the local free workflow.</p>
+        </div>
+        <button class="btn secondary" id="contractProInterest" type="button">I'm interested in automation</button>
+      </div>
+    </section>
+
+    <section class="shell toolbox-note">
+      <div class="privacy">
+        <div><div class="eyebrow">WHY DATA CONTRACTS</div><h2>Catch drift before downstream systems do.</h2></div>
+        <div><p>A recurring file can keep the same filename while changing columns, types, null rates or key quality. A data contract turns those assumptions into explicit checks.</p><p class="muted">The free RowMend contract is stored locally or exported as JSON. No dataset content is sent to a RowMend backend.</p><p><a href="/guides/data-contract-schema-drift-csv/">Read the practical guide to CSV schema drift and data contracts →</a></p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>MVP 0.6.0 · local-first data operations</p><div><a href="/">Home</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+</body>
+</html>

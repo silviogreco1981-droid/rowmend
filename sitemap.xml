@@ -27,4 +27,10 @@
   <url>
     <loc>https://rowmend.netlify.app/guides/clean-csv-data-before-database-import/</loc>
   </url>
+  <url>
+    <loc>https://rowmend.netlify.app/data-contract/</loc>
+  </url>
+  <url>
+    <loc>https://rowmend.netlify.app/guides/data-contract-schema-drift-csv/</loc>
+  </url>
 </urlset>
