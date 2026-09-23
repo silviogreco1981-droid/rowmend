@@ -44,3 +44,14 @@ Review:
 5. generated INSERT or MERGE/UPSERT SQL.
 
 Generated SQL should always be reviewed before use against a production database.
+
+
+## Workflow Runner demo
+
+The `workflow-demo/` folder contains an importable RowMend Local Project plus three recurring vendor-file scenarios for testing the complete 0.8 workflow:
+
+- valid delivery → PASS + SQL output;
+- invalid email → import validation error + SQL blocked by the default gate;
+- schema drift → contract error + downstream steps skipped.
+
+See [workflow-demo/README.md](./workflow-demo/README.md) for the end-to-end instructions.
