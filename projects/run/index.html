@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Workflow Runner — RowMend</title>
+  <meta name="description" content="Run a RowMend Local Project as one browser-only data workflow: profile, clean, check the contract, validate import rules and prepare SQL output." />
+  <meta name="robots" content="noindex,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/projects/run/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/toolbox.css" />
+  <link rel="stylesheet" href="/projects/run/runner.css" />
+  <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script defer src="/analytics.js"></script>
+  <script defer src="/data-core.js"></script>
+  <script defer src="/contract-core.js"></script>
+  <script defer src="/project-core.js"></script>
+  <script defer src="/workflow-core.js"></script>
+  <script defer src="/projects/run/runner.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/projects/">Projects</a><a href="/profile-data/">Profile</a><a href="/clean-data/">Clean</a><a href="/data-contract/">Contract</a><a href="/migration-check/">Compare</a><a href="/#tool">Import</a></nav>
+  </header>
+
+  <main>
+    <section class="runner-hero shell">
+      <div class="eyebrow">WORKFLOW RUNNER · V0.8.0</div>
+      <h1>Run the project as <span>one data workflow.</span></h1>
+      <p class="lede">Load the new file once. RowMend can profile it, apply the project cleanup recipe, enforce its data contract, validate import rules and prepare SQL output — locally in your browser.</p>
+      <div class="trust-row"><span>✓ One file load</span><span>✓ Local quality gates</span><span>✓ Local run history</span></div>
+    </section>
+
+    <section class="shell runner-layout">
+      <aside class="runner-card runner-side">
+        <div class="runner-project-summary" id="runnerProjectSummary"></div>
+
+        <label class="runner-drop" id="runnerDrop" for="runnerFile">
+          <input id="runnerFile" type="file" accept=".csv,.tsv,.xlsx,.xls" hidden />
+          <span class="upload-icon">⇧</span>
+          <strong>Drop the next workflow file</strong>
+          <small>or click to choose a dataset</small>
+          <small class="muted">CSV · TSV · XLSX · XLS</small>
+        </label>
+        <div class="runner-file-summary" id="runnerFileSummary"><span>No dataset loaded.</span></div>
+
+        <div class="field-group">
+          <label for="runnerDelimiter">CSV delimiter</label>
+          <select id="runnerDelimiter">
+            <option value="auto">Auto detect</option>
+            <option value=",">Comma (,)</option>
+            <option value=";">Semicolon (;)</option>
+            <option value="tab">Tab</option>
+            <option value="|">Pipe (|)</option>
+          </select>
+        </div>
+
+        <div class="runner-options">
+          <label><input id="stopOnContractErrors" type="checkbox" checked /> Stop the pipeline before import validation when the data contract has errors.</label>
+          <label><input id="blockSqlOnInvalidRows" type="checkbox" checked /> Block SQL output when at least one row fails import validation.</label>
+          <div class="field-group">
+            <label for="sqlMode">SQL output mode</label>
+            <select id="sqlMode">
+              <option value="insert">INSERT</option>
+              <option value="merge">MERGE / UPSERT</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn primary full" id="runWorkflow" type="button" disabled>Run project workflow</button>
+        <a class="btn ghost full" id="backToProject" href="/projects/" style="margin-top:8px">Back to project</a>
+        <div class="runner-message" id="runnerMessage" aria-live="polite"></div>
+      </aside>
+
+      <section class="runner-card runner-main">
+        <div class="runner-empty" id="runnerEmpty">
+          <strong>Load a file to run this project</strong>
+          <span>The runner will use only the workflow configuration already stored in the Local Project.</span>
+        </div>
+
+        <div class="runner-results hidden" id="runnerResults">
+          <div class="runner-status" id="runnerStatus"></div>
+          <div class="runner-metrics" id="runnerMetrics"></div>
+
+          <div class="toolbox-toolbar">
+            <div><div class="eyebrow">PIPELINE</div><h2>Run report</h2></div>
+            <span class="local-badge">● processed locally</span>
+          </div>
+          <div class="runner-steps" id="runnerSteps"></div>
+
+          <div class="runner-output">
+            <div class="toolbox-toolbar">
+              <div><div class="eyebrow">OUTPUTS</div><h2>Export this run</h2></div>
+              <span class="muted">Generated only from the current in-memory run</span>
+            </div>
+            <div class="runner-output-actions">
+              <button class="btn secondary" id="downloadCleaned" type="button">Cleaned CSV</button>
+              <button class="mini-btn" id="downloadErrors" type="button">Validation errors CSV</button>
+              <button class="mini-btn" id="downloadSql" type="button">SQL output</button>
+              <button class="mini-btn" id="downloadRunReport" type="button">Run report JSON</button>
+            </div>
+          </div>
+
+          <div class="runner-history">
+            <div class="runner-history-head">
+              <div><div class="eyebrow">LOCAL HISTORY</div><h2>Recent runs</h2></div>
+              <button class="mini-btn danger" id="clearRunHistory" type="button">Clear history</button>
+            </div>
+            <div class="runner-history-list" id="runHistory"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="shell toolbox-note">
+      <div class="privacy">
+        <div><div class="eyebrow">HISTORY WITHOUT RAW DATA</div><h2>Remember what happened, not the dataset.</h2></div>
+        <div><p>RowMend stores only compact local run summaries: status, timestamps, row counts, warning/error counts and duration. Source rows, SQL text, file names and validation detail are not written to run history.</p><p class="muted">Future Pro automation can build on the same workflow model with scheduled execution, synchronized history and alerts.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>MVP 0.8.0 · local workflow execution</p><div><a href="/">Home</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+</body>
+</html>

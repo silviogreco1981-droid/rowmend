@@ -8,6 +8,8 @@
   const PROJECT_VERSION = 1;
   const STORAGE_KEY = 'rowmend_projects_v070';
   const ACTIVE_KEY = 'rowmend_active_project_v070';
+  const RUN_STORAGE_KEY = 'rowmend_project_runs_v080';
+  const MAX_RUN_HISTORY = 30;
   const ARTIFACT_TYPES = ['profile', 'cleanRecipe', 'dataContract', 'importProfile', 'migrationPreset'];
 
   function clone(value) {
@@ -146,6 +148,13 @@
     if (!projects[id]) return false;
     delete projects[id];
     writeAll(projects);
+
+    const runs = readRunStore();
+    if (runs[id]) {
+      delete runs[id];
+      writeRunStore(runs);
+    }
+
     if (typeof localStorage !== 'undefined' && localStorage.getItem(ACTIVE_KEY) === id) {
       localStorage.removeItem(ACTIVE_KEY);
     }
@@ -248,6 +257,70 @@
     };
   }
 
+  function readRunStore() {
+    if (typeof localStorage === 'undefined') return {};
+    try {
+      const parsed = JSON.parse(localStorage.getItem(RUN_STORAGE_KEY) || '{}');
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function writeRunStore(value) {
+    if (typeof localStorage === 'undefined') throw new Error('Local storage is not available.');
+    localStorage.setItem(RUN_STORAGE_KEY, JSON.stringify(value));
+  }
+
+  function sanitizeRunSummary(summary) {
+    if (!summary || typeof summary !== 'object') throw new Error('A valid run summary is required.');
+    const allowedStatus = summary.status === 'PASS' ? 'PASS' : 'REVIEW_REQUIRED';
+    const numberOrNull = value => value === null || value === undefined
+      ? null
+      : (Number.isFinite(Number(value)) ? Number(value) : null);
+
+    return {
+      id: String(summary.id || makeId()),
+      status: allowedStatus,
+      startedAt: String(summary.startedAt || nowIso()),
+      durationMs: Math.max(0, numberOrNull(summary.durationMs) || 0),
+      inputRows: Math.max(0, numberOrNull(summary.inputRows) || 0),
+      outputRows: Math.max(0, numberOrNull(summary.outputRows) || 0),
+      validRows: numberOrNull(summary.validRows),
+      invalidRows: numberOrNull(summary.invalidRows),
+      contractErrors: Math.max(0, numberOrNull(summary.contractErrors) || 0),
+      contractWarnings: Math.max(0, numberOrNull(summary.contractWarnings) || 0),
+      warningSteps: Math.max(0, numberOrNull(summary.warningSteps) || 0),
+      errorSteps: Math.max(0, numberOrNull(summary.errorSteps) || 0)
+    };
+  }
+
+  function addRunSummary(projectId, summary) {
+    if (!getProject(projectId)) throw new Error('Project not found.');
+    const store = readRunStore();
+    const run = sanitizeRunSummary(summary);
+    const current = Array.isArray(store[projectId]) ? store[projectId] : [];
+    store[projectId] = [run, ...current].slice(0, MAX_RUN_HISTORY);
+    writeRunStore(store);
+    return clone(run);
+  }
+
+  function listRunHistory(projectId) {
+    if (!getProject(projectId)) return [];
+    const store = readRunStore();
+    return (Array.isArray(store[projectId]) ? store[projectId] : [])
+      .map(sanitizeRunSummary)
+      .sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)));
+  }
+
+  function clearRunHistory(projectId) {
+    const store = readRunStore();
+    if (!store[projectId]) return false;
+    delete store[projectId];
+    writeRunStore(store);
+    return true;
+  }
+
   function exportProject(project) {
     validateProject(project);
     return JSON.stringify(project, null, 2);
@@ -271,6 +344,8 @@
     PROJECT_VERSION,
     STORAGE_KEY,
     ACTIVE_KEY,
+    RUN_STORAGE_KEY,
+    MAX_RUN_HISTORY,
     ARTIFACT_TYPES,
     createProject,
     validateProject,
@@ -289,6 +364,9 @@
     projectUrl,
     profileSnapshot,
     projectCompletion,
+    addRunSummary,
+    listRunHistory,
+    clearRunHistory,
     exportProject,
     importProject
   };

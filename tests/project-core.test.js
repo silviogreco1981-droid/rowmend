@@ -131,6 +131,40 @@ const cleared = core.clearArtifact(project.id, 'migrationPreset');
 assert.strictEqual(cleared.artifacts.migrationPreset, null);
 assert.strictEqual(core.projectCompletion(cleared).configured, 4);
 
+const run1 = core.addRunSummary(project.id, {
+  status:'PASS',
+  startedAt:'2026-09-23T08:00:00.000Z',
+  durationMs:120,
+  inputRows:100,
+  outputRows:98,
+  validRows:98,
+  invalidRows:0,
+  contractErrors:0,
+  contractWarnings:0,
+  warningSteps:0,
+  errorSteps:0,
+  fileName:'must-not-be-stored.csv',
+  rawRows:[{secret:'x'}]
+});
+assert.strictEqual(run1.status, 'PASS');
+assert.strictEqual(core.listRunHistory(project.id).length, 1);
+assert.strictEqual(core.listRunHistory(project.id)[0].inputRows, 100);
+assert.ok(!('fileName' in core.listRunHistory(project.id)[0]));
+assert.ok(!('rawRows' in core.listRunHistory(project.id)[0]));
+
+for (let i = 0; i < 35; i += 1) {
+  core.addRunSummary(project.id, {
+    status:i % 2 ? 'PASS' : 'REVIEW_REQUIRED',
+    startedAt:`2026-09-23T08:${String(i % 60).padStart(2,'0')}:00.000Z`,
+    durationMs:i,
+    inputRows:i,
+    outputRows:i
+  });
+}
+assert.strictEqual(core.listRunHistory(project.id).length, core.MAX_RUN_HISTORY);
+assert.strictEqual(core.clearRunHistory(project.id), true);
+assert.strictEqual(core.listRunHistory(project.id).length, 0);
+
 let invalidFailed = false;
 try {
   core.setArtifact(project.id, 'cleanRecipe', {recipe:'not-an-array'});
@@ -139,7 +173,14 @@ try {
 }
 assert.ok(invalidFailed);
 
+core.addRunSummary(project.id, {
+  status:'PASS',
+  inputRows:1,
+  outputRows:1
+});
+assert.strictEqual(core.listRunHistory(project.id).length, 1);
 assert.strictEqual(core.deleteProject(project.id), true);
 assert.strictEqual(core.getProject(project.id), null);
+assert.strictEqual(core.listRunHistory(project.id).length, 0);
 
 console.log('Project core tests passed');
