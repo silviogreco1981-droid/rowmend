@@ -91,12 +91,21 @@ See the live privacy notice for details.
 
 ### Workflow Runner
 
-1. Open https://rowmend.netlify.app/projects/?utm_source=github&utm_medium=referral&utm_campaign=repository and select a Local Project.
-2. Click **Run project**.
-3. Load the new CSV/TSV/Excel file once.
-4. Choose the quality gates and SQL mode.
-5. Run the pipeline and review Profile → Clean → Contract → Validate → Output.
-6. Export the current outputs or review compact local run history.
+Fastest first look:
+1. Open https://rowmend.netlify.app/projects/?utm_source=github&utm_medium=referral&utm_campaign=repository
+2. Click **Try a preconfigured demo**.
+3. RowMend creates a local demo project, opens Workflow Runner and loads a demo vendor dataset.
+4. Click **Run project workflow** and review Profile → Clean → Contract → Validate → Output.
+
+For your own recurring workflow:
+1. Select or create a Local Project.
+2. Attach or create the cleanup recipe, data contract and import profile you need.
+3. Click **Run project**.
+4. Load the next CSV/TSV/Excel delivery once.
+5. Choose the quality gates and SQL mode.
+6. Run the pipeline, export the current outputs and review compact local run history.
+
+In-product guide: https://rowmend.netlify.app/guides/workflow-runner-quick-start/
 
 
 ### Local Projects
