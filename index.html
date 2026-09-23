@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RowMend — Local-first Data Workflow Projects, Profiling & Migration Checks</title>
-  <meta name="description" content="Build reusable local data workflows for CSV/Excel: projects, profiling, cleanup recipes, data contracts, SQL generation and migration reconciliation without uploads." />
+  <title>RowMend — Local-first Data Workflow Runner, Profiling & Migration Checks</title>
+  <meta name="description" content="Build and run reusable local data workflows for CSV/Excel: profile, clean, contract-check, validate imports, generate SQL and reconcile migrations without uploads." />
   <meta name="robots" content="index,follow" />
   <meta property="og:title" content="RowMend — Local-first Data Operations Toolbox" />
-  <meta property="og:description" content="Keep recurring data workflow configuration together in Local Projects, then profile, clean, validate and reconcile entirely in your browser." />
+  <meta property="og:description" content="Run recurring data workflows locally: one file load, cleanup, contract checks, import validation, SQL output and local run history." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://rowmend.netlify.app/" />
   <meta property="og:site_name" content="RowMend" />
@@ -40,10 +40,10 @@
   <main id="top">
     <section class="hero shell">
       <div class="hero-copy">
-        <div class="eyebrow">LOCAL-FIRST DATA OPERATIONS · V0.7.0</div>
+        <div class="eyebrow">LOCAL-FIRST DATA OPERATIONS · V0.8.0</div>
         <h1>One toolbox for the <span>whole data workflow.</span></h1>
-        <p class="lede">Organize recurring work in Local Projects, then profile, clean, contract, validate, generate SQL and reconcile migrations — entirely in your browser.</p>
-        <div class="hero-actions"><a class="btn primary" href="/projects/">Create a local project</a><a class="btn ghost" href="/profile-data/">Use a standalone tool</a></div>
+        <p class="lede">Build a Local Project once, then run profiling, cleanup, contract checks, import validation and SQL preparation as one browser-only workflow.</p>
+        <div class="hero-actions"><a class="btn primary" href="/projects/">Build & run a project</a><a class="btn ghost" href="/profile-data/">Use a standalone tool</a></div>
         <div class="trust-row"><span>✓ No signup</span><span>✓ No file upload</span><span>✓ No artificial row paywall</span></div>
       </div>
       <div class="hero-card" aria-label="Product preview">
@@ -59,12 +59,12 @@ WHEN MATCHED THEN UPDATE ...</pre>
 
         <section class="privacy shell" aria-labelledby="local-projects-title">
       <div>
-        <div class="eyebrow">LOCAL PROJECTS · V0.7.0</div>
-        <h2 id="local-projects-title">Make a recurring data workflow reusable.</h2>
+        <div class="eyebrow">WORKFLOW RUNNER · V0.8.0</div>
+        <h2 id="local-projects-title">Run a recurring data workflow in one pass.</h2>
       </div>
       <div>
-        <p>Bundle a profile snapshot, cleanup recipe, data contract, import mapping and migration preset into one browser-local project. Export the configuration as JSON without embedding the source datasets.</p>
-        <p><a class="btn primary" href="/projects/">Open Local Projects</a></p>
+        <p>A Local Project can now execute profiling, cleanup, contract checks, import validation and SQL preparation from one file load, with compact run history stored only in your browser.</p>
+        <p><a class="btn primary" href="/projects/">Open Projects & Runner</a></p>
       </div>
     </section>
 
@@ -84,7 +84,7 @@ WHEN MATCHED THEN UPDATE ...</pre>
 
     <section class="privacy shell" aria-labelledby="migration-check-launch">
       <div>
-        <div class="eyebrow">MIGRATION CHECK · INCLUDED IN V0.7.0</div>
+        <div class="eyebrow">MIGRATION CHECK · INCLUDED IN V0.8.0</div>
         <h2 id="migration-check-launch">Verify source vs target after a migration.</h2>
       </div>
       <div>
@@ -95,7 +95,7 @@ WHEN MATCHED THEN UPDATE ...</pre>
     </section>
 
     <section class="tool-section" id="tool"><div class="shell">
-      <div class="section-heading"><div><div class="eyebrow">IMPORT CHECKER · ROWMEND V0.7.0</div><h2>Drop a file. See what will break.</h2></div><span class="local-badge">● processed locally</span></div>
+      <div class="section-heading"><div><div class="eyebrow">IMPORT CHECKER · ROWMEND V0.8.0</div><h2>Drop a file. See what will break.</h2></div><span class="local-badge">● processed locally</span></div>
 
       <div class="onboarding-card" id="onboardingCard" aria-live="polite">
         <div class="onboarding-head"><div><span class="eyebrow">QUICK START</span><h3>Get to a useful result in three steps.</h3></div><button class="onboarding-hide" id="onboardingHide" type="button">Hide</button></div>
@@ -139,9 +139,9 @@ WHEN MATCHED THEN UPDATE ...</pre>
     <section class="shell three" id="how"><article><span>01</span><h3>Load</h3><p>Open CSV, TSV or Excel. Files stay on your device.</p></article><article><span>02</span><h3>Inspect & map</h3><p>Detect issues, rename target columns and apply validation rules before import.</p></article><article><span>03</span><h3>Export or generate</h3><p>Download clean data, export errors, or create SQL from valid rows by default.</p></article></section>
     <section class="privacy shell seo-intro" aria-labelledby="validate-before-import"><div><div class="eyebrow">DATABASE IMPORT PRE-FLIGHT</div><h2 id="validate-before-import">Validate CSV & Excel before database import</h2></div><div><p>RowMend helps you run data quality checks on CSV and Excel data before importing it into a database. Detect missing required values, duplicate keys, invalid data and mapping issues before they reach your target system.</p><p class="muted">Map source columns, apply validation rules, separate valid and invalid rows, and generate SQL for Oracle, SQL Server and PostgreSQL — directly in your browser.</p><p><a href="/guides/validate-csv-excel-before-database-import/">Read the practical guide to validating CSV and Excel before database import</a></p></div></section>
     <section class="privacy shell" id="privacy"><div><div class="eyebrow">PRIVACY BY ARCHITECTURE</div><h2>Your spreadsheet is not our dataset.</h2></div><div><p>RowMend is designed as a local-first toolbox. Profiling, cleaning, transformation recipes, data contracts, validation, mapping, SQL generation and migration reconciliation happen in the browser. This MVP has no application backend and no account system.</p><p class="muted">Saved mappings, cleanup recipes and data contracts remain in local browser storage until you delete them. Product analytics receives only aggregate interaction data, never uploaded file contents, file names, column names, record keys or data values.</p></div></section>
-    <section class="pricing shell" id="pricing"><div class="pricing-copy"><div class="eyebrow">FREE LOCALLY · PRO FOR TEAMS</div><h2>Keep powerful browser-side work free. Charge for operational leverage.</h2><p>RowMend is intentionally generous where execution costs almost nothing: profiling, cleanup recipes, data contracts, validation, SQL generation and migration checks run locally. A future Pro layer is aimed at shared workflows, cloud automation, auditability and governance.</p></div><div class="pricing-card"><div><strong>Free</strong><span>no artificial row paywall</span></div><ul><li>CSV / TSV / Excel profiling</li><li>Reusable local cleanup recipes</li><li>Data contracts and schema drift checks</li><li>Data validation and column mapping</li><li>Error / clean CSV export</li><li>Safe-by-default SQL generation</li><li>Oracle / SQL Server / PostgreSQL</li><li>Source vs target migration reconciliation</li><li>Local saved profiles, recipes and contracts</li><li>Local workflow projects with JSON export</li></ul><button class="btn primary full" id="proInterest" type="button">Help shape RowMend Pro</button><small id="interestNote">Pro candidates: shared workspaces, scheduled checks, CI/API integrations, audit reports and governance.</small></div></section>
+    <section class="pricing shell" id="pricing"><div class="pricing-copy"><div class="eyebrow">FREE LOCALLY · PRO FOR TEAMS</div><h2>Keep powerful browser-side work free. Charge for operational leverage.</h2><p>RowMend is intentionally generous where execution costs almost nothing: profiling, cleanup recipes, data contracts, validation, SQL generation and migration checks run locally. A future Pro layer is aimed at shared workflows, cloud automation, auditability and governance.</p></div><div class="pricing-card"><div><strong>Free</strong><span>no artificial row paywall</span></div><ul><li>CSV / TSV / Excel profiling</li><li>Reusable local cleanup recipes</li><li>Data contracts and schema drift checks</li><li>Data validation and column mapping</li><li>Error / clean CSV export</li><li>Safe-by-default SQL generation</li><li>Oracle / SQL Server / PostgreSQL</li><li>Source vs target migration reconciliation</li><li>Local saved profiles, recipes and contracts</li><li>Local workflow projects with JSON export</li><li>One-pass Workflow Runner with local run history</li></ul><button class="btn primary full" id="proInterest" type="button">Help shape RowMend Pro</button><small id="interestNote">Pro candidates: shared workspaces, scheduled checks, CI/API integrations, audit reports and governance.</small></div></section>
   </main>
-  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Working product name · MVP 0.7.0</p><div><button class="footer-feedback" id="footerFeedback" type="button">Give feedback</button><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Working product name · MVP 0.8.0</p><div><button class="footer-feedback" id="footerFeedback" type="button">Give feedback</button><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
 
   <div class="feedback-modal hidden" id="feedbackModal" aria-hidden="true">
     <div class="feedback-dialog" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
