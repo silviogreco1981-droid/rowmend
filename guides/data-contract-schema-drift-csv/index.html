@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How to Detect CSV Schema Drift with a Data Contract — RowMend</title>
+  <meta name="description" content="Learn how to detect CSV schema drift with a data contract: missing columns, unexpected columns, type changes, null-rate drift, uniqueness failures and duplicate keys." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/guides/data-contract-schema-drift-csv/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="How to Detect CSV Schema Drift with a Data Contract — RowMend" />
+  <meta property="og:description" content="Turn assumptions about recurring files into explicit checks before downstream imports break." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://rowmend.netlify.app/guides/data-contract-schema-drift-csv/" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script defer src="/analytics.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/profile-data/">Profile</a><a href="/clean-data/">Clean</a><a href="/data-contract/">Contract</a><a href="/migration-check/">Compare</a><a href="/#tool">Import</a></nav>
+  </header>
+
+  <main class="shell" style="max-width:900px;padding:72px 0 96px">
+    <article>
+      <div class="eyebrow">DATA CONTRACT GUIDE</div>
+      <h1 style="font-size:clamp(42px,7vw,72px);letter-spacing:-.05em;line-height:.98;margin:18px 0 24px">How to detect CSV schema drift with a data contract</h1>
+      <p class="lede">A recurring file can keep the same name while quietly changing its structure or data quality. A data contract makes the assumptions behind the workflow explicit and testable before the next import reaches a database.</p>
+
+      <h2>1. Start from a known-good baseline</h2>
+      <p>Choose a dataset that represents the structure you trust. Profile its columns, inferred types, completeness and uniqueness. The baseline is not the contract itself; it is evidence used to propose the first version of the contract.</p>
+
+      <h2>2. Define the expected schema</h2>
+      <p>Record which columns should exist and which inferred type each column is expected to contain. Decide whether an unexpected column should merely be tolerated or flagged for review.</p>
+
+      <h2>3. Make null expectations explicit</h2>
+      <p>A required field should not silently become sparse. For optional columns, define a maximum acceptable missing-value rate so gradual source degradation can be detected before it becomes a full failure.</p>
+
+      <h2>4. Protect identifiers and business keys</h2>
+      <p>If a column is expected to be unique, encode that expectation. When uniqueness depends on several fields, define a composite key and check for duplicate key groups instead of only checking duplicate rows.</p>
+
+      <h2>5. Detect type drift, not just missing columns</h2>
+      <p>A column can still exist while changing from numbers to free-form text or dates to inconsistent strings. Type checks catch those changes even when the header remains identical.</p>
+
+      <h2>6. Use row-count limits carefully</h2>
+      <p>Minimum and maximum row counts can catch truncated feeds or unexpectedly large extracts, but they should reflect a meaningful business expectation. Leave them open when volume legitimately varies.</p>
+
+      <h2>7. Separate local checks from future automation</h2>
+      <p>A manual local contract check is already useful for recurring imports. The natural next step for teams is automation: scheduled execution, contract version history, alerts, CI/API checks, shared contracts and audit trails.</p>
+
+      <section style="margin-top:56px;padding:28px;border:1px solid rgba(127,127,127,.24);border-radius:18px">
+        <div class="eyebrow">TRY THE CONTRACT</div>
+        <h2 style="margin-top:10px">Create a schema guard from your own file</h2>
+        <p>RowMend Data Contract creates an editable local contract from CSV or Excel and checks new datasets for schema drift and rule violations without uploading file contents.</p>
+        <p><a class="btn primary" href="/data-contract/">Open Data Contract</a></p>
+      </section>
+
+      <p style="margin-top:36px">A strong workflow usually starts earlier: <a href="/guides/profile-csv-data-before-import/">profile the data</a>, then <a href="/guides/clean-csv-data-before-database-import/">clean it deliberately</a>, and use a contract to keep later files consistent.</p>
+    </article>
+  </main>
+
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>MVP 0.6.0 · local-first data operations</p><div><a href="/">Home</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+</body>
+</html>
