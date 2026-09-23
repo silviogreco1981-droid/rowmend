@@ -5,6 +5,7 @@
   if (!projects) return;
 
   let project = projects.projectFromSearch(window.location.search);
+  const actions = [];
 
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, ch => ({
@@ -37,6 +38,16 @@
           <a class="mini-btn" href="/projects/?project=${encodeURIComponent(project.id)}">Back to project</a>
         </div>
       </div>`;
+
+    const wrap = document.getElementById('rowmendProjectActions');
+    actions.forEach(action => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = action.className || 'mini-btn';
+      button.textContent = action.label;
+      button.addEventListener('click', action.handler);
+      wrap.insertBefore(button, wrap.firstChild);
+    });
   }
 
   function refresh() {
@@ -48,17 +59,14 @@
 
   function addAction(label, handler, options = {}) {
     if (!project || typeof handler !== 'function') return null;
+    const action = {
+      label: String(label || 'Project action'),
+      handler,
+      className: options.className || 'mini-btn'
+    };
+    actions.push(action);
     renderBar();
-    const wrap = document.getElementById('rowmendProjectActions');
-    if (!wrap) return null;
-
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = options.className || 'mini-btn';
-    button.textContent = label;
-    button.addEventListener('click', handler);
-    wrap.insertBefore(button, wrap.firstChild);
-    return button;
+    return action;
   }
 
   function saveArtifact(type, payload, meta = {}) {
