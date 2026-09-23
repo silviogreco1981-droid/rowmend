@@ -1,102 +1,149 @@
 ---
-title: A CSV Can Be Valid and Still Corrupt Your Import
+title: From One-Off CSV Fixes to a Repeatable Local Data Workflow
 published: false
-description: A practical pre-flight checklist for catching schema drift, mapping errors, duplicate keys and invalid values before CSV or Excel data reaches a database.
-tags: dataengineering, sql, database, csv
-canonical_url: https://rowmend.netlify.app/guides/validate-csv-excel-before-database-import/
+description: A practical way to turn recurring CSV and Excel cleanup, schema checks, validation and database preparation into a repeatable workflow.
+tags: dataengineering, csv, sql, database
+canonical_url: https://rowmend.netlify.app/guides/repeatable-csv-data-workflow/
 ---
 
-A CSV can parse perfectly and still be wrong for the import that consumes it.
+A recurring CSV import rarely fails in the same way twice.
 
-That is the class of problem I find most dangerous: not the file that obviously fails, but the file that looks valid enough to move through the pipeline.
+The file may arrive every week or every month. The business process calls it the same feed. But one delivery adds a column, another changes a date format, another introduces duplicate keys, and eventually the “simple import” becomes a collection of spreadsheet steps and one-off scripts.
 
-A column gets renamed. Two columns change order. A business key becomes duplicated. A date format changes. The ETL job finishes successfully, but the target now contains data that does not mean what the source intended.
+The useful shift is to stop treating each file as an isolated cleanup task and instead model the **workflow around the file**.
 
-## Start with structure, not values
+## 1. Profile before changing anything
 
-Before validating individual values, check whether the file still has the shape you expect.
+Before editing values, capture the structure of the incoming dataset.
 
-Questions worth answering before the load starts:
+Useful signals include:
 
-- Are all expected columns present?
-- Did unexpected columns appear?
-- Were any columns renamed?
-- Does each source column still map to the intended target field?
-- Is the pipeline relying on column position anywhere?
+- row and column count;
+- missing values;
+- uniqueness;
+- exact duplicate rows;
+- inferred types;
+- mixed-type columns;
+- numeric/date ranges;
+- common values.
 
-Position-based mapping is especially risky. A CSV with the same number of columns can still be semantically wrong if the order changes.
+The purpose is not to create a perfect statistical profile. It is to establish enough context to answer a basic question:
 
-## Required fields should fail early
+> Does this delivery still resemble the source I expect?
 
-Database constraints are useful, but they are a poor first diagnostic tool.
+## 2. Make cleanup explicit
 
-If a required field is missing, it is much easier to report:
+Repeated spreadsheet edits are difficult to audit and even harder to reproduce.
 
-> Row 184 is missing CUSTOMER_ID
+If the same feed repeatedly needs whitespace trimming, case normalization, replacements, column renames or deduplication, turn those operations into an ordered recipe.
 
-than to wait for a database error after SQL generation or bulk loading.
+A recipe has two advantages:
 
-The same applies to fields that are technically nullable in the database but required by the business workflow.
+1. the transformation can be repeated;
+2. the assumptions become visible.
 
-## Duplicate keys can hide inside “successful” loads
+That is already better than “open the file and fix the usual things.”
 
-Row counts alone are not enough.
+## 3. Separate cleanup from expectations
 
-Imagine that one expected record is missing while another key appears twice. Source and target can still have the same number of rows.
+Cleanup and validation are different concerns.
 
-If an import uses a key for MERGE/UPSERT behavior, check that key for uniqueness before generating SQL.
+A cleanup recipe answers:
 
-## Be conservative with types and dates
+> How should this file be normalized?
 
-Implicit conversions are convenient until the source changes.
+A data contract answers:
 
-Common examples:
+> What must still be true after normalization?
 
-- decimal separators change;
-- dates move from `YYYY-MM-DD` to a locale-specific format;
-- numeric columns start containing text;
-- empty strings and NULLs get treated differently.
-
-For recurring imports, explicit accepted formats are usually safer than aggressive type guessing.
-
-## Separate clean rows from error rows
-
-A useful validation workflow should produce two things:
-
-1. rows that are safe to continue processing;
-2. rows that need attention, with enough context to understand why.
-
-This makes remediation easier and reduces the chance of known-invalid rows leaking into generated SQL.
-
-## SQL generation should be the last step
-
-INSERT, MERGE and UPSERT generation should happen only after:
-
-- structure is understood;
-- mappings are explicit;
-- required values have been checked;
-- key uniqueness is verified;
-- type/date rules have passed.
-
-Generated SQL still needs review before production use, but validation removes a large class of avoidable problems before they become database problems.
-
-## A compact pre-flight checklist
-
-Before importing a CSV or Excel file, I would at least check:
+Useful contract rules can include:
 
 - expected columns;
-- unexpected or renamed columns;
-- source-to-target mappings;
-- required values;
-- duplicate keys;
-- accepted date/number formats;
-- separation of valid and invalid rows;
-- exclusion of known-invalid rows from generated SQL.
+- required columns;
+- expected types;
+- acceptable missing rates;
+- uniqueness expectations;
+- composite keys;
+- row-count boundaries.
 
-I put the longer version of this checklist, including Oracle, SQL Server and PostgreSQL considerations, in this guide:
+This distinction matters because you do not want cleanup logic silently hiding an upstream schema change.
 
-https://rowmend.netlify.app/guides/validate-csv-excel-before-database-import/?utm_source=devto&utm_medium=referral&utm_campaign=database_import_guide
+## 4. Reuse the import configuration
 
-I am also using the same workflow while building RowMend, a local-first browser tool for validating CSV/Excel imports before they reach a database. The useful part for me is less “generate SQL” and more catching structural and data-quality problems early.
+Recurring feeds usually go to the same destination.
 
-If you work with recurring imports, I would be interested in the failure mode you see most often: schema drift, mappings, duplicate keys, type conversions, or something else?
+That means the source-to-target mapping, validation rules, SQL dialect and merge key are not properties of the individual file. They are properties of the workflow.
+
+Save them once.
+
+The next delivery should not require somebody to remember that `customer_code` maps to `CUSTOMER_ID`, that the email field is required, or that `CUSTOMER_ID` is the merge key.
+
+## 5. Add quality gates
+
+Not every issue should have the same consequence.
+
+Examples:
+
+- missing required key column → stop;
+- broken data contract → stop before database preparation;
+- invalid email in a non-critical field → review;
+- invalid import rows → export errors and block SQL;
+- warning-only schema drift → continue but surface the warning.
+
+Quality gates make the workflow deterministic instead of operator-dependent.
+
+## 6. Run the pipeline from one file load
+
+Once the configuration exists, there is little value in opening five separate tools and loading the same file five times.
+
+A more natural pipeline is:
+
+`Load → Profile → Clean → Contract → Validate → Output`
+
+The output can include:
+
+- cleaned CSV;
+- validation-error CSV;
+- INSERT SQL;
+- MERGE / UPSERT SQL;
+- a compact run report.
+
+For post-migration work, a second target dataset can then be used for reconciliation.
+
+## 7. Keep history without keeping raw data
+
+For recurring workflows, the result of the previous run is useful even when the previous source file is not retained.
+
+A privacy-minimized local history can keep aggregate information such as:
+
+- run status;
+- row counts;
+- invalid-row count;
+- contract warning/error count;
+- duration.
+
+That is enough to start spotting trends without turning the tool into another data store.
+
+## A concrete implementation
+
+I have been implementing this model in **RowMend**, a local-first browser tool.
+
+The current version includes:
+
+- Data Profiler;
+- Clean & Transform recipes;
+- Data Contracts;
+- Import Checker and SQL generation;
+- Migration Check;
+- Local Projects;
+- Workflow Runner with local run history.
+
+The important architectural constraint is that the data operations run in the browser. There is no required account and source files are not intentionally uploaded to a RowMend application backend.
+
+You can try the workflow here:
+
+https://rowmend.netlify.app/guides/repeatable-csv-data-workflow/?utm_source=devto&utm_medium=article&utm_campaign=v080_workflow_runner
+
+The next question I am trying to answer is whether local run history should evolve into data-drift insights: comparing row counts, completeness, uniqueness and contract violations between recurring deliveries.
+
+If you work with recurring CSV/Excel imports, I would be interested in what changes most often between deliveries and which failure mode is hardest to detect early.
