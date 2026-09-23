@@ -114,7 +114,7 @@
     state.keySources.clear();
     const likelyKey = state.mappings.find(m => /(^id$|_id$|code$|key$)/i.test(m.sourceColumn) && m.targetColumn) || state.mappings.find(m => m.targetColumn);
     if (likelyKey) state.keySources.add(likelyKey.sourceColumn);
-    renderMappings();
+    if (!applyProjectMigrationPreset(true)) renderMappings();
   }
 
   function renderMappings() {
@@ -159,6 +159,75 @@
     });
 
     validateReady();
+  }
+
+  function saveMigrationPresetToProject() {
+    const context = window.RowMendProjectContext;
+    if (!context?.project) return;
+    if (!state.source || !state.target || !state.mappings.length) {
+      setMessage('Load source and target datasets before saving a migration preset.', 'error');
+      return;
+    }
+
+    try {
+      context.saveArtifact('migrationPreset', {
+        mappings: state.mappings.map(mapping => ({
+          sourceColumn: mapping.sourceColumn,
+          targetColumn: mapping.targetColumn || '',
+          compare: mapping.compare !== false
+        })),
+        keySources: [...state.keySources],
+        options: comparisonOptions()
+      }, { label:'Source-to-target comparison preset' });
+      setMessage('Current migration mapping saved to the active local project.', 'success');
+      track('project_artifact_saved', { artifact:'migration_preset', mappings:state.mappings.length, keys:state.keySources.size });
+    } catch (error) {
+      setMessage(error.message || 'Unable to save the migration preset.', 'error');
+    }
+  }
+
+  function applyProjectMigrationPreset(silent = false) {
+    const context = window.RowMendProjectContext;
+    const artifact = context?.getArtifact('migrationPreset');
+    if (!artifact) {
+      if (!silent) setMessage('The active project does not contain a migration preset yet.', 'error');
+      return false;
+    }
+    if (!state.source || !state.target || !state.mappings.length) {
+      if (!silent) setMessage('Load source and target datasets before applying the project migration preset.', 'error');
+      return false;
+    }
+
+    const targetHeaders = new Set(state.target.headers);
+    const savedBySource = new Map((artifact.mappings || []).map(mapping => [mapping.sourceColumn, mapping]));
+    let applied = 0;
+
+    state.mappings.forEach(mapping => {
+      const saved = savedBySource.get(mapping.sourceColumn);
+      if (!saved) return;
+      mapping.targetColumn = saved.targetColumn && targetHeaders.has(saved.targetColumn) ? saved.targetColumn : '';
+      mapping.compare = Boolean(mapping.targetColumn) && saved.compare !== false;
+      applied += 1;
+    });
+
+    state.keySources.clear();
+    (artifact.keySources || []).forEach(sourceColumn => {
+      const mapping = state.mappings.find(item => item.sourceColumn === sourceColumn);
+      if (mapping?.targetColumn) state.keySources.add(sourceColumn);
+    });
+
+    if (artifact.options) {
+      $('trimWhitespace').checked = artifact.options.trimWhitespace !== false;
+      $('emptyEqualsNull').checked = artifact.options.emptyEqualsNull !== false;
+      $('caseInsensitive').checked = artifact.options.caseInsensitive === true;
+    }
+
+    renderMappings();
+    if (!silent) {
+      setMessage(`Project migration preset applied to ${applied} source column${applied === 1 ? '' : 's'}.`, 'success');
+      track('project_artifact_loaded', { artifact:'migration_preset', mappings:applied });
+    }
+    return true;
   }
 
   function validateReady() {
@@ -341,6 +410,10 @@
 
   function init() {
     track('migration_check_opened');
+    if (window.RowMendProjectContext?.project) {
+      window.RowMendProjectContext.addAction('Save migration preset', saveMigrationPresetToProject);
+      window.RowMendProjectContext.addAction('Load project preset', () => applyProjectMigrationPreset(false));
+    }
     wireDropzone('source');
     wireDropzone('target');
     $('loadMigrationDemo').addEventListener('click', loadDemo);
