@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How to Handle Messy Vendor CSV & Excel Imports — RowMend</title>
+  <meta name="description" content="A practical workflow for recurring vendor CSV and Excel files with changing headers, missing values, inconsistent types, duplicates and schema drift." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/guides/messy-vendor-csv-excel-imports/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="How to Handle Messy Vendor CSV & Excel Imports — RowMend" />
+  <meta property="og:description" content="Stop rebuilding one-off cleanup logic every time a vendor file changes." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://rowmend.netlify.app/guides/messy-vendor-csv-excel-imports/" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script defer src="/analytics.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/projects/">Projects</a><a href="/profile-data/">Profile</a><a href="/clean-data/">Clean</a><a href="/data-contract/">Contract</a><a href="/migration-check/">Compare</a><a href="/#tool">Import</a></nav>
+  </header>
+
+  <main class="shell" style="max-width:900px;padding:72px 0 96px">
+    <article>
+      <div class="eyebrow">RECURRING FILE IMPORT GUIDE</div>
+      <h1 style="font-size:clamp(42px,7vw,72px);letter-spacing:-.05em;line-height:.98;margin:18px 0 24px">How to handle messy vendor CSV and Excel imports</h1>
+      <p class="lede">Vendor, partner and customer files rarely stay perfectly consistent. Headers move, date formats drift, required values disappear, identifiers duplicate and one-off spreadsheet fixes become part of the monthly routine. The goal is not to make every file perfect by hand — it is to make the workflow repeatable.</p>
+
+      <h2>1. Profile each new file before changing it</h2>
+      <p>Start with structure and quality signals: row count, columns, missing values, uniqueness, duplicate rows, inferred types and common values. This gives you a quick way to see whether the new delivery resembles the files you have already accepted.</p>
+
+      <h2>2. Turn recurring cleanup into a recipe</h2>
+      <p>If you repeatedly trim whitespace, normalize casing, rename a field, replace placeholders or remove duplicates, record those steps as an ordered transformation recipe instead of editing the spreadsheet manually every time.</p>
+
+      <h2>3. Separate schema expectations from cleanup logic</h2>
+      <p>Cleanup answers “how should this file be normalized?” A data contract answers “what must still be true?” Keep expected columns, required fields, types, uniqueness, key rules and missing-value thresholds explicit so an upstream change cannot silently pass through.</p>
+
+      <h2>4. Reuse the import mapping</h2>
+      <p>For recurring feeds, source-to-target mappings, validation rules, SQL dialect and merge key are workflow configuration. Save them once and reuse them rather than recreating the import setup for every delivery.</p>
+
+      <h2>5. Add quality gates before database output</h2>
+      <p>Decide what should stop the workflow. A missing key column may need to block the import immediately, while a non-critical warning may only require review. Quality gates make those decisions consistent instead of depending on who happens to process the file.</p>
+
+      <h2>6. Run the workflow from one file load</h2>
+      <p>When the configuration is already known, the efficient path is one input file followed by profiling, cleanup, contract checking, import validation and output generation. That reduces repeated file handling and makes the run easier to review.</p>
+
+      <h2>7. Keep a lightweight history of outcomes</h2>
+      <p>Even without storing the source data, a compact history of row counts, warnings, errors and run status can reveal that a feed is becoming less complete or suddenly much smaller than usual.</p>
+
+      <section style="margin-top:56px;padding:28px;border:1px solid rgba(127,127,127,.24);border-radius:18px">
+        <div class="eyebrow">ROWMEND WORKFLOW RUNNER</div>
+        <h2 style="margin-top:10px">Build the workflow once, then run the next file through it</h2>
+        <p>RowMend Local Projects can keep cleanup recipes, data contracts, import mappings and migration presets together. Workflow Runner executes the configured local pipeline from one CSV/Excel load without uploading the dataset to a RowMend backend.</p>
+        <p><a class="btn primary" href="/projects/?utm_source=rowmend_guide&utm_medium=internal&utm_campaign=messy_vendor_imports">Open Local Projects & Workflow Runner</a></p>
+      </section>
+
+      <p style="margin-top:36px">You can also use each step independently: <a href="/profile-data/">profile a file</a>, <a href="/clean-data/">clean and transform it</a>, or <a href="/data-contract/">create a data contract</a>.</p>
+    </article>
+  </main>
+
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>MVP 0.8.0 · local workflow execution</p><div><a href="/">Home</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+</body>
+</html>
