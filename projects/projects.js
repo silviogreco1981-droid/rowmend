@@ -194,6 +194,65 @@
     }
   }
 
+  function createDemoProject() {
+    try {
+      let project = core.addProject({
+        name:'Monthly vendor import demo',
+        description:'Preconfigured RowMend demo for a recurring vendor CSV workflow.'
+      });
+
+      project = core.setArtifact(project.id, 'cleanRecipe', {
+        recipe:[
+          {type:'trim', columns:['NAME','EMAIL']},
+          {type:'lowercase', column:'EMAIL'}
+        ]
+      }, { label:'Vendor cleanup' });
+
+      project = core.setArtifact(project.id, 'dataContract', {
+        contract:{
+          contractVersion:1,
+          name:'Monthly vendor contract',
+          createdAt:new Date().toISOString(),
+          updatedAt:new Date().toISOString(),
+          baseline:{rows:4,columns:4},
+          settings:{
+            strictColumns:true,
+            minRows:1,
+            maxRows:100000,
+            keyColumns:['ID']
+          },
+          columns:[
+            {name:'ID',expectedType:'number',required:true,unique:true,maxMissingRate:0,maxMixedTypeRate:0},
+            {name:'NAME',expectedType:'string',required:true,unique:false,maxMissingRate:0,maxMixedTypeRate:0},
+            {name:'EMAIL',expectedType:'string',required:true,unique:false,maxMissingRate:0,maxMixedTypeRate:0},
+            {name:'AMOUNT',expectedType:'number',required:true,unique:false,maxMissingRate:0,maxMixedTypeRate:0}
+          ]
+        }
+      }, { label:'Monthly vendor contract' });
+
+      project = core.setArtifact(project.id, 'importProfile', {
+        profile:{
+          tableName:'VENDOR_IMPORT',
+          dialect:'postgres',
+          keyColumn:'ID',
+          config:{
+            ID:{target:'ID',required:true,unique:true,email:false,type:'number'},
+            NAME:{target:'SUPPLIER_NAME',required:true,unique:false,email:false,type:'string'},
+            EMAIL:{target:'EMAIL',required:true,unique:false,email:true,type:'string'},
+            AMOUNT:{target:'AMOUNT',required:true,unique:false,email:false,type:'number'}
+          }
+        }
+      }, { label:'PostgreSQL vendor import' });
+
+      state.project = project;
+      core.setActiveProject(project.id);
+      track('project_demo_created', { configured:core.projectCompletion(project).configured });
+      window.location.href = core.projectUrl('/projects/run/', project.id) + '&demo=1';
+    } catch (error) {
+      setMessage(error.message || 'Unable to create the demo project.', 'error');
+    }
+  }
+
   function saveMeta() {
     if (!state.project) return;
     try {
@@ -342,6 +401,7 @@
 
   function bind() {
     $('createProject').addEventListener('click', createProject);
+    $('createDemoProject').addEventListener('click', createDemoProject);
     $('saveProjectMeta').addEventListener('click', saveMeta);
     $('duplicateProject').addEventListener('click', duplicateCurrent);
     $('exportProject').addEventListener('click', exportCurrent);
