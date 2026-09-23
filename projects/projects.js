@@ -112,6 +112,7 @@
     $('openContractTool').href = core.projectUrl('/data-contract/', projectId);
     $('openImportTool').href = core.projectUrl('/#tool', projectId);
     $('openMigrationTool').href = core.projectUrl('/migration-check/', projectId);
+    $('runProject').href = core.projectUrl('/projects/run/', projectId);
   }
 
   function renderProject() {
