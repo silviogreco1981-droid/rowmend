@@ -148,6 +148,13 @@
     if (!projects[id]) return false;
     delete projects[id];
     writeAll(projects);
+
+    const runs = readRunStore();
+    if (runs[id]) {
+      delete runs[id];
+      writeRunStore(runs);
+    }
+
     if (typeof localStorage !== 'undefined' && localStorage.getItem(ACTIVE_KEY) === id) {
       localStorage.removeItem(ACTIVE_KEY);
     }
