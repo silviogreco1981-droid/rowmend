@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RowMend Workflow Runner Quick Start — Local Projects in 2 Minutes</title>
+  <meta name="description" content="Learn RowMend Local Projects and Workflow Runner in a few minutes: try the preconfigured demo, understand quality gates, then build your own repeatable CSV or Excel workflow." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/guides/workflow-runner-quick-start/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="RowMend Workflow Runner Quick Start" />
+  <meta property="og:description" content="Try the one-click demo, then build your own repeatable local CSV/Excel workflow." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://rowmend.netlify.app/guides/workflow-runner-quick-start/" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script defer src="/analytics.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/projects/">Projects</a><a href="/profile-data/">Profile</a><a href="/clean-data/">Clean</a><a href="/data-contract/">Contract</a><a href="/migration-check/">Compare</a><a href="/#tool">Import</a></nav>
+  </header>
+
+  <main class="shell" style="max-width:900px;padding:72px 0 96px">
+    <article>
+      <div class="eyebrow">WORKFLOW RUNNER QUICK START</div>
+      <h1 style="font-size:clamp(42px,7vw,72px);letter-spacing:-.05em;line-height:.98;margin:18px 0 24px">Try RowMend end to end in about two minutes</h1>
+      <p class="lede">You do not need to configure every RowMend tool before you understand the workflow. Start with the preconfigured demo, see the full pipeline once, then build your own Local Project when the model makes sense.</p>
+
+      <h2>1. Open Local Projects</h2>
+      <p>Go to <a href="/projects/">Local Projects</a>. Projects are browser-local containers for reusable workflow configuration. They do not store the source CSV or Excel rows themselves.</p>
+
+      <h2>2. Choose “Try a preconfigured demo”</h2>
+      <p>RowMend creates a local demo project with three things already attached:</p>
+      <ul>
+        <li>a cleanup recipe that trims fields and normalizes email case;</li>
+        <li>a data contract that expects the demo vendor schema;</li>
+        <li>a PostgreSQL import profile with mappings, validation rules and a merge key.</li>
+      </ul>
+      <p>The demo then opens Workflow Runner and loads a small vendor dataset automatically.</p>
+
+      <h2>3. Run the pipeline</h2>
+      <p>Keep the default quality gates enabled and click <strong>Run project workflow</strong>. The normal path is:</p>
+      <p><strong>Profile → Clean → Contract → Validate → Output</strong></p>
+      <p>For the built-in demo, all five steps should pass and SQL output should become available.</p>
+
+      <h2>4. Understand the quality gates</h2>
+      <p>Workflow Runner has two important default safeguards:</p>
+      <ul>
+        <li><strong>Stop on contract errors:</strong> if the dataset no longer matches required schema expectations, RowMend stops before import validation and SQL preparation.</li>
+        <li><strong>Block SQL on invalid rows:</strong> if row-level validation fails, SQL output is blocked unless you explicitly turn that gate off.</li>
+      </ul>
+      <p>Warnings can still be reviewed without necessarily stopping the whole workflow.</p>
+
+      <h2>5. Review and export the current run</h2>
+      <p>After a run, RowMend shows the step status, input/output row counts, invalid rows, contract errors and execution duration. Depending on the result, you can export:</p>
+      <ul>
+        <li>cleaned CSV;</li>
+        <li>validation-error CSV;</li>
+        <li>INSERT or MERGE/UPSERT SQL;</li>
+        <li>a compact run report as JSON.</li>
+      </ul>
+
+      <h2>6. What gets stored locally</h2>
+      <p>Local run history stores only compact summaries such as status, timestamp, duration and aggregate row/error counts. It intentionally does not persist source rows, source file names, generated SQL or row-level validation values.</p>
+
+      <h2>7. Build your own recurring workflow</h2>
+      <p>Once the demo is clear, create a normal Local Project and configure only the pieces you need:</p>
+      <ol>
+        <li>Profile a known file if you want structural evidence.</li>
+        <li>Create or attach a cleanup recipe.</li>
+        <li>Create or attach a data contract.</li>
+        <li>Save an import profile with mappings, validation rules, dialect and key.</li>
+        <li>Optionally save a migration reconciliation preset.</li>
+        <li>Run the next delivery through Workflow Runner from one file load.</li>
+      </ol>
+
+      <section style="margin-top:56px;padding:28px;border:1px solid rgba(127,127,127,.24);border-radius:18px">
+        <div class="eyebrow">START HERE</div>
+        <h2 style="margin-top:10px">See the full workflow before configuring anything</h2>
+        <p>The demo is completely local and can be deleted like any other Local Project after you finish exploring it.</p>
+        <p><a class="btn primary" href="/projects/">Open Local Projects and try the demo</a></p>
+      </section>
+
+      <p style="margin-top:36px">For the design behind recurring workflows, continue with <a href="/guides/repeatable-csv-data-workflow/">How to build a repeatable CSV data workflow</a>. If your main problem is changing supplier or partner files, see <a href="/guides/messy-vendor-csv-excel-imports/">How to handle messy vendor CSV and Excel imports</a>.</p>
+    </article>
+  </main>
+
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>MVP 0.8.0 · Workflow Runner quick start</p><div><a href="/">Home</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+</body>
+</html>
