@@ -168,10 +168,10 @@
       }
 
       const maxMissingRate = clampRate(rule.maxMissingRate, 0);
-      if (actual.missingRate > maxMissingRate + 1e-12) {
+      if (!rule.required && actual.missingRate > maxMissingRate + 1e-12) {
         issues.push(issue(
           'missing_rate_exceeded',
-          rule.required ? 'error' : 'warning',
+          'warning',
           rule.name,
           `Missing rate ${(actual.missingRate * 100).toFixed(1)}% exceeds the allowed ${(maxMissingRate * 100).toFixed(1)}%.`,
           { actualRate: actual.missingRate, maxRate: maxMissingRate, missing: actual.missing }
