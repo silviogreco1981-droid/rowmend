@@ -136,6 +136,41 @@
     }
   }
 
+  function loadDemoDataset() {
+    const dataset = {
+      headers:['ID','NAME','EMAIL','AMOUNT'],
+      rows:[
+        {ID:'1001',NAME:' Acme North ',EMAIL:'SALES@ACMENORTH.EXAMPLE',AMOUNT:'1200.50'},
+        {ID:'1002',NAME:'Blue River Ltd',EMAIL:'ops@blueriver.example',AMOUNT:'985'},
+        {ID:'1003',NAME:' Green Field GmbH ',EMAIL:'CONTACT@GREENFIELD.EXAMPLE',AMOUNT:'2150.75'},
+        {ID:'1004',NAME:'Delta Services',EMAIL:'finance@delta.example',AMOUNT:'640'}
+      ]
+    };
+
+    state.dataset = dataset;
+    state.fileName = 'demo-vendor.csv';
+    state.result = null;
+
+    $('runnerFileSummary').innerHTML = '<strong>Demo vendor dataset</strong><span>4 rows · 4 columns</span>';
+    $('runWorkflow').disabled = !state.project;
+    $('runnerEmpty').classList.remove('hidden');
+    $('runnerResults').classList.add('hidden');
+    setMessage(
+      state.project
+        ? 'Demo dataset ready. Run the project workflow.'
+        : 'Demo dataset loaded. Return to Local Projects and choose or create a project first.',
+      state.project ? 'success' : 'error'
+    );
+
+    track('workflow_file_loaded', {
+      rows:dataset.rows.length,
+      columns:dataset.headers.length,
+      file_type:'demo',
+      demo:true
+    });
+    track('workflow_demo_loaded');
+  }
+
   function metric(label, value, cls = '') {
     return `<div class="runner-metric ${cls}"><strong>${escapeHtml(value)}</strong><span>${escapeHtml(label)}</span></div>`;
   }
@@ -300,6 +335,7 @@
     wireDropzone();
 
     $('runWorkflow').addEventListener('click', runWorkflow);
+    $('loadRunnerDemo').addEventListener('click', loadDemoDataset);
 
     $('downloadCleaned').addEventListener('click', () => {
       if (!state.result?.cleanedDataset) return;
