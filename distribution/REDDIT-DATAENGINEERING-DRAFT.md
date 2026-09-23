@@ -1,46 +1,42 @@
-# r/dataengineering draft — RowMend 0.8
+# r/dataengineering — RowMend 0.8
 
 ## Suggested title
 
-How do you keep recurring vendor CSV/Excel imports from turning into one-off cleanup scripts?
+I built a local-only workflow for recurring CSV/Excel imports — looking for the edge cases I missed
 
 ## Draft
 
-A recurring pattern I keep running into is that the file format is technically “the same” every month, but in practice something drifts.
+I’ve been working on a small browser tool called RowMend, mostly because I wanted a better way to deal with recurring CSV/Excel files that are “the same” every month until they suddenly aren’t.
 
-A header changes, an identifier starts duplicating, a date format changes, null rates jump, or a field that used to be numeric suddenly contains text. The import itself is usually not the hard part. The hard part is making the checks and cleanup repeatable instead of adding another one-off script or spreadsheet procedure.
+The annoying cases are usually not broken CSVs.
 
-I have been working on RowMend to explore a local-first workflow for this.
+They’re things like:
 
-The current workflow is roughly:
+- a column quietly gets renamed;
+- a business key starts duplicating;
+- nulls appear in a field that used to be complete;
+- a date/number format changes;
+- someone fixes the file manually and nobody remembers exactly what they changed;
+- source and target have the same row count after a migration but some records are still wrong.
 
-- profile the incoming CSV/Excel;
-- apply an ordered cleanup recipe;
-- check a data contract for schema/data-quality drift;
-- reuse source-to-target mappings and validation rules;
-- optionally generate INSERT / MERGE / UPSERT SQL;
-- compare source and target data after a migration;
-- keep the workflow in a local project and run a new delivery through it from one file load.
+I originally built RowMend around import validation and SQL generation. I’ve since reworked it into a more repeatable flow:
 
-Everything runs in the browser and there is no account requirement. The source file is not intentionally uploaded to a RowMend backend.
+**Profile → Clean → Contract → Validate → Output**
 
-Affiliation disclosure: I built RowMend.
+A project can keep the cleanup recipe, schema/data-quality expectations and import mapping together, then run a new delivery through them from one file load.
 
-What I am more interested in than promoting the tool is the workflow itself: for people receiving recurring files from vendors/customers/partners, what causes the most operational pain?
+It all runs in the browser. No account is required, and the source file is not intentionally uploaded to a RowMend backend.
 
-- schema drift?
-- duplicate business keys?
-- date/number formatting?
-- mapping changes?
-- files that are structurally valid but semantically wrong?
-- reconciliation after the load?
-
-RowMend is here if anyone wants to try the approach:
+There’s a small preconfigured demo if anyone wants to see what I mean without setting anything up:
 
 https://rowmend.netlify.app/?utm_source=reddit&utm_medium=community&utm_campaign=v080_vendor_workflow
 
-I would especially value examples where this model would fail or where the checks need to happen differently.
+Full disclosure: I built it.
 
-## Posting note
+What I’d genuinely like to know from people who deal with recurring external files is where this model falls apart.
 
-r/dataengineering currently limits self-promotion for a project/product to once per month. Confirm that no RowMend promotional post has been made in the previous month before using this draft.
+Which problems are harder than they look?
+
+Schema drift? Bad keys? Locale-specific numbers/dates? Multiple sheets? Huge files? Reconciliation after load? Something else entirely?
+
+I’m trying to use that feedback to decide what deserves to go into the next version rather than just adding more features.
