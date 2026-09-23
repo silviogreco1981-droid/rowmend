@@ -1,3 +1,11 @@
+# DEV Community authoring notes — do not publish this file verbatim
+
+DEV's current AI-assisted-content guidance asks authors to disclose AI assistance, and says AI-assisted/generated articles should not promote the author's own business or product. Because RowMend is the product being promoted, use this file only as internal subject-matter notes.
+
+If publishing on DEV, write the actual article yourself from your own experience and technical knowledge, without copying or editing AI-generated prose. Keep the article useful even if every RowMend link were removed.
+
+---
+
 ---
 title: I Stopped Treating Recurring CSV Imports as One-Off Files
 published: false
