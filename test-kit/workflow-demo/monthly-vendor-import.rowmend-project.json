@@ -1,0 +1,124 @@
+{
+  "projectVersion": 1,
+  "id": "demo-monthly-vendor-import",
+  "name": "Monthly vendor import demo",
+  "description": "Demo project for RowMend 0.8 Workflow Runner. Profile, clean, contract-check, validate and prepare PostgreSQL output from one recurring vendor CSV.",
+  "createdAt": "2026-09-23T00:00:00.000Z",
+  "updatedAt": "2026-09-23T00:00:00.000Z",
+  "artifacts": {
+    "profile": null,
+    "cleanRecipe": {
+      "recipe": [
+        {
+          "type": "trim",
+          "columns": [
+            "NAME",
+            "EMAIL"
+          ]
+        },
+        {
+          "type": "lowercase",
+          "column": "EMAIL"
+        }
+      ],
+      "label": "Vendor cleanup",
+      "savedAt": "2026-09-23T00:00:00.000Z"
+    },
+    "dataContract": {
+      "contract": {
+        "contractVersion": 1,
+        "name": "Monthly vendor contract",
+        "createdAt": "2026-09-23T00:00:00.000Z",
+        "updatedAt": "2026-09-23T00:00:00.000Z",
+        "baseline": {
+          "rows": 4,
+          "columns": 4
+        },
+        "settings": {
+          "strictColumns": true,
+          "minRows": 1,
+          "maxRows": 100000,
+          "keyColumns": [
+            "ID"
+          ]
+        },
+        "columns": [
+          {
+            "name": "ID",
+            "expectedType": "number",
+            "required": true,
+            "unique": true,
+            "maxMissingRate": 0,
+            "maxMixedTypeRate": 0
+          },
+          {
+            "name": "NAME",
+            "expectedType": "string",
+            "required": true,
+            "unique": false,
+            "maxMissingRate": 0,
+            "maxMixedTypeRate": 0
+          },
+          {
+            "name": "EMAIL",
+            "expectedType": "string",
+            "required": true,
+            "unique": false,
+            "maxMissingRate": 0,
+            "maxMixedTypeRate": 0
+          },
+          {
+            "name": "AMOUNT",
+            "expectedType": "number",
+            "required": true,
+            "unique": false,
+            "maxMissingRate": 0,
+            "maxMixedTypeRate": 0
+          }
+        ]
+      },
+      "label": "Monthly vendor contract",
+      "savedAt": "2026-09-23T00:00:00.000Z"
+    },
+    "importProfile": {
+      "profile": {
+        "tableName": "VENDOR_IMPORT",
+        "dialect": "postgres",
+        "keyColumn": "ID",
+        "config": {
+          "ID": {
+            "target": "ID",
+            "required": true,
+            "unique": true,
+            "email": false,
+            "type": "number"
+          },
+          "NAME": {
+            "target": "SUPPLIER_NAME",
+            "required": true,
+            "unique": false,
+            "email": false,
+            "type": "string"
+          },
+          "EMAIL": {
+            "target": "EMAIL",
+            "required": true,
+            "unique": false,
+            "email": true,
+            "type": "string"
+          },
+          "AMOUNT": {
+            "target": "AMOUNT",
+            "required": true,
+            "unique": false,
+            "email": false,
+            "type": "number"
+          }
+        }
+      },
+      "label": "PostgreSQL vendor import",
+      "savedAt": "2026-09-23T00:00:00.000Z"
+    },
+    "migrationPreset": null
+  }
+}
