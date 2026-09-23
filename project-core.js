@@ -278,6 +278,30 @@
     const numberOrNull = value => value === null || value === undefined
       ? null
       : (Number.isFinite(Number(value)) ? Number(value) : null);
+    const rate = value => {
+      const number = numberOrNull(value);
+      if (number === null) return null;
+      return Math.max(0, Math.min(1, number));
+    };
+    const profileMetrics = summary.profileMetrics && typeof summary.profileMetrics === 'object'
+      ? {
+          rows:Math.max(0, numberOrNull(summary.profileMetrics.rows) || 0),
+          columns:Math.max(0, numberOrNull(summary.profileMetrics.columns) || 0),
+          completeness:rate(summary.profileMetrics.completeness) ?? 0,
+          duplicateRows:Math.max(0, numberOrNull(summary.profileMetrics.duplicateRows) || 0),
+          mixedColumns:Math.max(0, numberOrNull(summary.profileMetrics.mixedColumns) || 0),
+          allMissingColumns:Math.max(0, numberOrNull(summary.profileMetrics.allMissingColumns) || 0),
+          columnMetrics:Array.isArray(summary.profileMetrics.columnMetrics)
+            ? summary.profileMetrics.columnMetrics.slice(0, 500).map(column => ({
+                name:String(column?.name || '').slice(0, 160),
+                type:String(column?.type || 'string').slice(0, 40),
+                missingRate:rate(column?.missingRate) ?? 0,
+                uniqueRate:rate(column?.uniqueRate) ?? 0,
+                mixedTypeRate:rate(column?.mixedTypeRate) ?? 0
+              })).filter(column => column.name)
+            : []
+        }
+      : null;
 
     return {
       id: String(summary.id || makeId()),
@@ -291,7 +315,9 @@
       contractErrors: Math.max(0, numberOrNull(summary.contractErrors) || 0),
       contractWarnings: Math.max(0, numberOrNull(summary.contractWarnings) || 0),
       warningSteps: Math.max(0, numberOrNull(summary.warningSteps) || 0),
-      errorSteps: Math.max(0, numberOrNull(summary.errorSteps) || 0)
+      errorSteps: Math.max(0, numberOrNull(summary.errorSteps) || 0),
+      configFingerprint:summary.configFingerprint ? String(summary.configFingerprint).slice(0, 80) : null,
+      profileMetrics
     };
   }
 
