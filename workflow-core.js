@@ -473,17 +473,17 @@
         summary:`${importResult.summary.validRows} valid · ${importResult.summary.invalidRows} invalid rows`
       });
 
-      if (settings.blockSqlOnInvalidRows && importResult.summary.invalidRows > 0) {
-        steps.push({
-          id:'output',
-          status:'warning',
-          summary:'SQL blocked because the project gate requires all rows to be valid.'
-        });
-      } else if (importResult.summary.structuralErrors > 0) {
+      if (importResult.summary.structuralErrors > 0) {
         steps.push({
           id:'output',
           status:'error',
           summary:'SQL blocked because the import mapping has structural errors.'
+        });
+      } else if (settings.blockSqlOnInvalidRows && importResult.summary.invalidRows > 0) {
+        steps.push({
+          id:'output',
+          status:'warning',
+          summary:'SQL blocked because the project gate requires all rows to be valid.'
         });
       } else {
         sqlResult = generateSql(working, importResult, importProfile, settings.sqlMode);
