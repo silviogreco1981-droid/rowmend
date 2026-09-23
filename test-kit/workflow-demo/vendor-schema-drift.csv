@@ -1,0 +1,5 @@
+ID,NAME,EMAIL,STATUS
+1001,Acme North,sales@acmenorth.example,ACTIVE
+1002,Blue River Ltd,ops@blueriver.example,ACTIVE
+1003,Green Field GmbH,contact@greenfield.example,HOLD
+1004,Delta Services,finance@delta.example,ACTIVE
