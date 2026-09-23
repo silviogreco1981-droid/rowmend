@@ -320,6 +320,54 @@
     setTimeout(() => URL.revokeObjectURL(url), 500);
   }
 
+  function saveRecipeToProject() {
+    const context = window.RowMendProjectContext;
+    if (!context?.project) return;
+    if (!state.recipe.length) {
+      setMessage('Add at least one transformation before saving the recipe to the project.', 'error');
+      return;
+    }
+
+    try {
+      context.saveArtifact('cleanRecipe', {
+        recipe: state.recipe.map(operation => ({
+          ...operation,
+          columns: operation.columns ? [...operation.columns] : undefined
+        }))
+      }, { label: $('recipeName').value.trim() || 'Project cleanup recipe' });
+      setMessage('Current cleanup recipe saved to the active local project.', 'success');
+      track('project_artifact_saved', { artifact:'clean_recipe', steps:state.recipe.length });
+    } catch (error) {
+      setMessage(error.message || 'Unable to save the recipe to the project.', 'error');
+    }
+  }
+
+  function loadRecipeFromProject() {
+    const context = window.RowMendProjectContext;
+    const artifact = context?.getArtifact('cleanRecipe');
+    if (!artifact?.recipe?.length) {
+      setMessage('The active project does not contain a cleanup recipe yet.', 'error');
+      return;
+    }
+    if (!state.original) {
+      setMessage('Load a dataset before applying the project cleanup recipe.', 'error');
+      return;
+    }
+
+    try {
+      core.applyRecipe(state.original, artifact.recipe);
+      state.recipe = artifact.recipe.map(operation => ({
+        ...operation,
+        columns: operation.columns ? [...operation.columns] : undefined
+      }));
+      recompute();
+      setMessage('Project cleanup recipe loaded and applied locally.', 'success');
+      track('project_artifact_loaded', { artifact:'clean_recipe', steps:state.recipe.length });
+    } catch (error) {
+      setMessage(`Project recipe is not compatible with this dataset: ${error.message}`, 'error');
+    }
+  }
+
   function getRecipes() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
     catch { return {}; }
@@ -401,6 +449,10 @@
 
   function init() {
     track('clean_opened');
+    if (window.RowMendProjectContext?.project) {
+      window.RowMendProjectContext.addAction('Save recipe to project', saveRecipeToProject);
+      window.RowMendProjectContext.addAction('Load project recipe', loadRecipeFromProject, { className:'mini-btn' });
+    }
     refreshSavedRecipes();
     wireDropzone();
 

@@ -185,6 +185,25 @@
     });
   }
 
+  function saveProfileToProject() {
+    const context = window.RowMendProjectContext;
+    const projects = window.RowMendProjects;
+    if (!context?.project) return;
+    if (!state.profile) {
+      setMessage('Load and profile a dataset before saving it to the project.', 'error');
+      return;
+    }
+
+    try {
+      const snapshot = projects.profileSnapshot(state.profile, state.fileName);
+      context.saveArtifact('profile', { snapshot }, { label: state.fileName || 'Data profile' });
+      setMessage('Structural profile snapshot saved to the active local project.', 'success');
+      track('project_artifact_saved', { artifact:'profile' });
+    } catch (error) {
+      setMessage(error.message || 'Unable to save the profile to the project.', 'error');
+    }
+  }
+
   async function handleFile(file) {
     try {
       setMessage('Reading and profiling locally…');
@@ -248,6 +267,9 @@
 
   function init() {
     track('profile_opened');
+    if (window.RowMendProjectContext?.project) {
+      window.RowMendProjectContext.addAction('Save current profile', saveProfileToProject);
+    }
     wireDropzone();
     $('loadProfileDemo').addEventListener('click', loadDemo);
 

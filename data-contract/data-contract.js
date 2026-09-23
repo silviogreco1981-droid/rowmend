@@ -393,6 +393,48 @@
     }
   }
 
+  function saveContractToProject() {
+    const context = window.RowMendProjectContext;
+    if (!context?.project) return;
+    if (!state.contract) {
+      setMessage('contractMessage', 'Create or load a data contract before saving it to the project.', 'error');
+      return;
+    }
+
+    try {
+      syncContractFromForm();
+      context.saveArtifact('dataContract', {
+        contract: contractCore.cloneContract(state.contract)
+      }, { label: state.contract.name || 'Project data contract' });
+      setMessage('contractMessage', 'Current data contract saved to the active local project.', 'success');
+      track('project_artifact_saved', { artifact:'data_contract', columns:state.contract.columns.length });
+    } catch (error) {
+      setMessage('contractMessage', error.message || 'Unable to save the contract to the project.', 'error');
+    }
+  }
+
+  function loadContractFromProject() {
+    const context = window.RowMendProjectContext;
+    const artifact = context?.getArtifact('dataContract');
+    if (!artifact?.contract) {
+      setMessage('contractMessage', 'The active project does not contain a data contract yet.', 'error');
+      return false;
+    }
+
+    try {
+      contractCore.validateContract(artifact.contract);
+      state.contract = contractCore.cloneContract(artifact.contract);
+      renderContract();
+      clearResult();
+      setMessage('contractMessage', 'Project data contract loaded.', 'success');
+      track('project_artifact_loaded', { artifact:'data_contract', columns:state.contract.columns.length });
+      return true;
+    } catch (error) {
+      setMessage('contractMessage', `Project contract is invalid: ${error.message}`, 'error');
+      return false;
+    }
+  }
+
   function saveContractWithName(name) {
     syncContractFromForm();
     const finalName = String(name || state.contract.name || '').trim();
@@ -482,6 +524,10 @@
 
   function init() {
     track('contract_opened');
+    if (window.RowMendProjectContext?.project) {
+      window.RowMendProjectContext.addAction('Save contract to project', saveContractToProject);
+      window.RowMendProjectContext.addAction('Load project contract', loadContractFromProject);
+    }
     refreshStoredContracts();
     wireDropzone('baselineDrop', 'baselineFile', loadBaselineFile);
     wireDropzone('candidateDrop', 'candidateFile', loadCandidateFile);
@@ -523,6 +569,9 @@
     });
 
     renderContract();
+    if (window.RowMendProjectContext?.getArtifact('dataContract')) {
+      loadContractFromProject();
+    }
   }
 
   init();
