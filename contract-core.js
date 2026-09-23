@@ -58,6 +58,19 @@
     if (Number(contract.contractVersion) !== CONTRACT_VERSION) {
       throw new Error('Unsupported data contract version.');
     }
+    if (!contract.settings || typeof contract.settings !== 'object') {
+      throw new Error('The data contract is missing settings.');
+    }
+    if (!Array.isArray(contract.settings.keyColumns)) {
+      throw new Error('The data contract keyColumns setting must be an array.');
+    }
+    const minRows = Number(contract.settings.minRows ?? 0);
+    const maxRowsRaw = contract.settings.maxRows;
+    const maxRows = maxRowsRaw === null || maxRowsRaw === '' || maxRowsRaw === undefined ? null : Number(maxRowsRaw);
+    if (!Number.isFinite(minRows) || minRows < 0) throw new Error('Invalid minimum row count.');
+    if (maxRows !== null && (!Number.isFinite(maxRows) || maxRows < 0)) throw new Error('Invalid maximum row count.');
+    if (maxRows !== null && maxRows < minRows) throw new Error('Maximum row count cannot be lower than minimum row count.');
+
     if (!Array.isArray(contract.columns) || !contract.columns.length) {
       throw new Error('The data contract does not define any columns.');
     }
@@ -74,10 +87,12 @@
         throw new Error(`Unsupported expected type for ${name}: ${rule.expectedType}`);
       }
 
-      if (clampRate(rule.maxMissingRate, -1) < 0) {
+      const missingRate = Number(rule.maxMissingRate);
+      const mixedRate = Number(rule.maxMixedTypeRate);
+      if (!Number.isFinite(missingRate) || missingRate < 0 || missingRate > 1) {
         throw new Error(`Invalid missing-rate threshold for ${name}`);
       }
-      if (clampRate(rule.maxMixedTypeRate, -1) < 0) {
+      if (!Number.isFinite(mixedRate) || mixedRate < 0 || mixedRate > 1) {
         throw new Error(`Invalid mixed-type threshold for ${name}`);
       }
     });
