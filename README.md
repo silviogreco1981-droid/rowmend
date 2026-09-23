@@ -1,8 +1,8 @@
 # RowMend
 
-**Organize, profile, clean, contract, validate, generate and reconcile data locally in your browser.**
+**Build and run repeatable data workflows locally in your browser.**
 
-RowMend is a local-first data operations toolbox. Local Projects now bundle recurring workflow configuration while the tools profile CSV/Excel datasets, build repeatable cleanup recipes, create reusable data contracts, validate imports, map columns, generate SQL for Oracle, SQL Server and PostgreSQL, and reconcile source-vs-target data after a migration.
+RowMend is a local-first data operations toolbox and workflow runner. Local Projects bundle recurring configuration, while Workflow Runner can execute profiling, cleanup, data-contract checks, import validation and SQL preparation from one file load. Standalone tools still support profiling, cleanup, contracts, SQL generation and source-vs-target migration reconciliation.
 
 **Try it:** https://rowmend.netlify.app/?utm_source=github&utm_medium=referral&utm_campaign=repository
 
@@ -20,6 +20,15 @@ It helps you answer questions like:
 - Can I generate INSERT or MERGE / UPSERT statements without including invalid rows by default?
 
 ## What it does
+
+### Workflow Runner
+- Run a Local Project from one CSV/TSV/Excel load.
+- Profile the input, apply the attached cleanup recipe, check the attached data contract and validate the attached import profile in sequence.
+- Use local quality gates to stop on contract errors or block SQL when invalid rows exist.
+- Generate valid-row INSERT or MERGE/UPSERT output when the configured gates allow it.
+- Export cleaned CSV, validation-error CSV, SQL and a run report.
+- Keep up to 30 privacy-minimized run summaries per project in localStorage without storing source rows, file names or SQL text.
+
 
 ### Local Projects
 - Bundle a structural profile snapshot, cleanup recipe, data contract, import profile and migration preset into one browser-local workflow.
@@ -72,13 +81,23 @@ It helps you answer questions like:
 
 Your spreadsheet is not uploaded to a RowMend application backend.
 
-Profiling, cleaning, data-contract checks, validation, mapping, local profile storage, and SQL generation happen in the browser. The current MVP has no application account system and no backend database. Local Projects are configuration containers stored in browser localStorage; source datasets are not copied into them.
+Profiling, cleaning, data-contract checks, validation, mapping, workflow execution, local run history and SQL generation happen in the browser. The current MVP has no application account system and no backend database. Local Projects are configuration containers stored in browser localStorage; source datasets are not copied into them.
 
 Minimal product analytics are used to understand whether people reach useful actions such as profiling a dataset, applying transformations, checking a data contract, loading a file, generating SQL, exporting cleaned data, comparing migrations, or saving a local profile/recipe/contract/project. RowMend does not intentionally send uploaded file contents, filenames, column names, generated SQL, target table names, validation results, profile names, or data values to analytics.
 
 See the live privacy notice for details.
 
 ## Quick start
+
+### Workflow Runner
+
+1. Open https://rowmend.netlify.app/projects/?utm_source=github&utm_medium=referral&utm_campaign=repository and select a Local Project.
+2. Click **Run project**.
+3. Load the new CSV/TSV/Excel file once.
+4. Choose the quality gates and SQL mode.
+5. Run the pipeline and review Profile → Clean → Contract → Validate → Output.
+6. Export the current outputs or review compact local run history.
+
 
 ### Local Projects
 
@@ -192,7 +211,7 @@ Potential future Pro / Team capabilities include:
 - scheduled contract checks, alerts, audit and exportable quality reports;
 - reusable import recipes;
 - CLI / API / CI integration;
-- synchronized projects, centralized team workflows and governance.
+- scheduled project runs, synchronized history, alerts, synchronized projects, centralized team workflows and governance.
 
 If you use RowMend and one of those would materially help your workflow, use the in-product feedback form.
 
