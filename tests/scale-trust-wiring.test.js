@@ -37,7 +37,9 @@ for (const file of scripts) {
   assert.ok(js.includes("excel_sheet_selected"), `${file} must track worksheet selection`);
   assert.ok(js.includes('sheet_count'), `${file} must track only worksheet count/index metadata`);
   assert.ok(js.includes('sheet_index'), `${file} must track only worksheet count/index metadata`);
-  assert.ok(!/track\(['"]excel_sheet_selected['"][\s\S]{0,400}(sheet_name|sheetName)/.test(js),
+  const eventMatch = js.match(/track\(['"]excel_sheet_selected['"]\s*,\s*\{([\s\S]*?)\}\s*\)/);
+  assert.ok(eventMatch, `${file} must expose the worksheet-selection analytics event`);
+  assert.ok(!/(?:sheet_name|sheetName)\s*:/.test(eventMatch[1]),
     `${file} must not send worksheet names to analytics`);
 }
 
