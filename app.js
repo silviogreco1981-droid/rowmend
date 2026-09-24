@@ -1,6 +1,7 @@
 (() => {
   const PROFILE_KEY = 'rowmend_profiles_v02';
-  const state = { rows: [], headers: [], schema: [], issues: [], fileName: '', sql: '', config: {}, rowErrors: [] };
+  const excelCore = window.RowMendExcel;
+  const state = { rows: [], headers: [], schema: [], issues: [], fileName: '', sql: '', config: {}, rowErrors: [], currentFile: null };
   const $ = (id) => document.getElementById(id);
   const fileInput = $('fileInput');
   const dropzone = $('dropzone');
@@ -145,24 +146,32 @@
     return detectDelimiter(text);
   }
 
-  async function readFile(file) {
+  async function readFile(file, sheetName = '') {
     const ext = file.name.split('.').pop().toLowerCase();
     if (ext === 'csv' || ext === 'tsv') {
       const text = await file.text();
       const delimiter = selectedDelimiter(text, ext);
       const label = $('detectedDelimiter');
       if (label) label.textContent = `Using: ${delimiterLabel(delimiter)}`;
-      return parseDelimited(text, delimiter);
+      return { rows: parseDelimited(text, delimiter), sheetName:'', sheetNames:[] };
     }
-    if ((ext === 'xlsx' || ext === 'xls') && window.XLSX) {
-      const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, { type: 'array', cellDates: false });
+    if (ext === 'xlsx' || ext === 'xls') {
+      if (!excelCore) throw new Error('Excel worksheet support is still loading. Please retry in a moment.');
       const label = $('detectedDelimiter');
       if (label) label.textContent = 'Delimiter not used for Excel files';
-      return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
+      return excelCore.readFile(file, sheetName);
     }
-    if (ext === 'xlsx' || ext === 'xls') throw new Error('Excel parser is still loading. Please retry in a moment.');
     throw new Error('Unsupported file type. Use CSV, TSV, XLSX or XLS.');
+  }
+
+  function syncExcelSheetSelector(file, parsed) {
+    state.currentFile = file;
+    const group = $('excelSheetGroup');
+    const select = $('excelSheet');
+    const names = Array.isArray(parsed.sheetNames) ? parsed.sheetNames : [];
+    select.replaceChildren(...names.map(name => new Option(name, name)));
+    if (parsed.sheetName) select.value = parsed.sheetName;
+    group.classList.toggle('hidden', names.length <= 1);
   }
 
   function primitiveType(value) {
@@ -385,15 +394,31 @@
     }
   }
 
-  async function onFile(file){
+  async function onFile(file, sheetName = '', sheetChange = false){
     try {
-      loadRows(await readFile(file),file.name);
+      const parsed = await readFile(file, sheetName);
+      syncExcelSheetSelector(file, parsed);
+      loadRows(parsed.rows, file.name);
       const ext=(file.name.split('.').pop() || '').toLowerCase();
-      track('file_loaded', { file_type: ext });
+      if (sheetChange) {
+        track('excel_sheet_selected', {
+          tool:'import_checker',
+          sheet_count:parsed.sheetNames.length,
+          sheet_index:Math.max(0, parsed.sheetNames.indexOf(parsed.sheetName))
+        });
+      } else {
+        track('file_loaded', { file_type: ext, sheet_count:parsed.sheetNames.length || undefined });
+      }
       signalSuccess('loaded');
     } catch(e){ alert(e.message); }
   }
-  function loadDemoTracked(){ loadRows(sampleRows); track('demo_loaded'); signalSuccess('loaded'); }
+  function loadDemoTracked(){
+    state.currentFile = null;
+    $('excelSheetGroup').classList.add('hidden');
+    loadRows(sampleRows);
+    track('demo_loaded');
+    signalSuccess('loaded');
+  }
   function activateTab(name){ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name)); ['issues','mapping','schema','preview','sql'].forEach(n=>$(n+'Panel').classList.toggle('hidden',n!==name)); }
 
   function csvEscape(v){const s=String(v??'');return /[",\n\r]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;}
@@ -482,6 +507,7 @@
   function deleteProfile(){const name=$('profileSelect').value;if(!name)return;const p=getProfiles();delete p[name];setProfiles(p);refreshProfiles();}
 
   fileInput.addEventListener('change',e=>e.target.files[0]&&onFile(e.target.files[0]));
+  $('excelSheet').addEventListener('change',()=>state.currentFile&&onFile(state.currentFile,$('excelSheet').value,true));
   ['dragenter','dragover'].forEach(ev=>dropzone.addEventListener(ev,e=>{e.preventDefault();dropzone.classList.add('drag')}));
   ['dragleave','drop'].forEach(ev=>dropzone.addEventListener(ev,e=>{e.preventDefault();dropzone.classList.remove('drag')}));
   dropzone.addEventListener('drop',e=>e.dataTransfer.files[0]&&onFile(e.dataTransfer.files[0]));
