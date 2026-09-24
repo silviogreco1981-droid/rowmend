@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/toolbox.css" />
   <link rel="stylesheet" href="/projects/run/runner.css" />
   <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script defer src="/excel-core.js"></script>
   <script defer src="/analytics.js"></script>
   <script defer src="/data-core.js"></script>
   <script defer src="/contract-core.js"></script>
@@ -58,6 +59,7 @@
             <option value="|">Pipe (|)</option>
           </select>
         </div>
+        <div class="field-group hidden" id="runnerExcelSheetGroup"><label for="runnerExcelSheet">Excel worksheet</label><select id="runnerExcelSheet"></select><small class="muted">Choose which worksheet RowMend should process.</small></div>
 
         <div class="runner-options">
           <label><input id="stopOnContractErrors" type="checkbox" checked /> Stop the pipeline before import validation when the data contract has errors.</label>
