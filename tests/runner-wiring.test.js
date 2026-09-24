@@ -9,7 +9,7 @@ const css = fs.readFileSync(path.join(root, 'projects/run/runner.css'), 'utf8');
 const privacy = fs.readFileSync(path.join(root, 'privacy.html'), 'utf8');
 
 assert.ok(html.includes('/insights-core.js'), 'Runner must load insights-core.js');
-assert.ok(html.includes('WORKFLOW RUNNER · V0.9.0'), 'Runner must show 0.9.0');
+assert.ok(html.includes('WORKFLOW RUNNER · V0.10.0 DEV'), 'Runner must show 0.10.0 development version');
 ['runnerInsights','baselineRun','downloadInsights','runnerInsightsSummary','runnerInsightMetrics','runnerTrends','runnerSignals']
   .forEach(id => assert.ok(html.includes(`id="${id}"`), `Missing runner insights element: ${id}`));
 
@@ -17,7 +17,9 @@ assert.ok(js.includes('window.RowMendInsights'), 'Runner must wire the insights 
 assert.ok(js.includes('projectCore.setRunBaseline'), 'Runner must persist explicit baselines');
 assert.ok(js.includes('insightsCore.compareRuns'), 'Runner must compare runs');
 assert.ok(js.includes('rowmend-run-insights.json'), 'Runner must export an insights report');
-assert.ok(js.includes("rowmendVersion:'0.9.0'"), 'Runner reports must identify 0.9.0');
+assert.ok(js.includes("rowmendVersion:'0.10.0-dev'"), 'Runner reports must identify 0.10.0 development version');
+assert.ok(js.includes('configuration r${project.revision || 1}'), 'Runner must expose the active project revision');
+assert.ok(js.includes('pinned baseline'), 'Runner history must identify a pinned baseline');
 
 assert.ok(css.includes('.runner-insights'), 'Runner insights styles missing');
 assert.ok(css.includes('.runner-side>a.btn.full'), 'Runner button-overlap fix missing');
