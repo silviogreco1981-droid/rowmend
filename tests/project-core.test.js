@@ -143,6 +143,19 @@ const run1 = core.addRunSummary(project.id, {
   contractWarnings:0,
   warningSteps:0,
   errorSteps:0,
+  configFingerprint:'abcd1234',
+  profileMetrics:{
+    rows:98,
+    columns:2,
+    completeness:0.97,
+    duplicateRows:1,
+    mixedColumns:0,
+    allMissingColumns:0,
+    columnMetrics:[
+      {name:'ID',type:'number',missingRate:0,uniqueRate:1,mixedTypeRate:0,topValues:[{value:'secret',count:98}]},
+      {name:'EMAIL',type:'string',missingRate:0.03,uniqueRate:0.95,mixedTypeRate:0}
+    ]
+  },
   fileName:'must-not-be-stored.csv',
   rawRows:[{secret:'x'}]
 });
@@ -151,6 +164,16 @@ assert.strictEqual(core.listRunHistory(project.id).length, 1);
 assert.strictEqual(core.listRunHistory(project.id)[0].inputRows, 100);
 assert.ok(!('fileName' in core.listRunHistory(project.id)[0]));
 assert.ok(!('rawRows' in core.listRunHistory(project.id)[0]));
+assert.strictEqual(core.listRunHistory(project.id)[0].configFingerprint, 'abcd1234');
+assert.strictEqual(core.listRunHistory(project.id)[0].profileMetrics.columnMetrics.length, 2);
+assert.ok(!('topValues' in core.listRunHistory(project.id)[0].profileMetrics.columnMetrics[0]));
+
+assert.strictEqual(core.getRunBaseline(project.id), null);
+assert.strictEqual(core.setRunBaseline(project.id, run1.id), run1.id);
+assert.strictEqual(core.getRunBaseline(project.id), run1.id);
+assert.strictEqual(core.setRunBaseline(project.id, null), null);
+assert.strictEqual(core.getRunBaseline(project.id), null);
+assert.strictEqual(core.setRunBaseline(project.id, run1.id), run1.id);
 
 for (let i = 0; i < 35; i += 1) {
   core.addRunSummary(project.id, {
@@ -164,6 +187,7 @@ for (let i = 0; i < 35; i += 1) {
 assert.strictEqual(core.listRunHistory(project.id).length, core.MAX_RUN_HISTORY);
 assert.strictEqual(core.clearRunHistory(project.id), true);
 assert.strictEqual(core.listRunHistory(project.id).length, 0);
+assert.strictEqual(core.getRunBaseline(project.id), null);
 
 let invalidFailed = false;
 try {

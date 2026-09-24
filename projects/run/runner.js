@@ -4,14 +4,19 @@
   const dataCore = window.RowMendData;
   const projectCore = window.RowMendProjects;
   const workflowCore = window.RowMendWorkflow;
-  if (!dataCore || !projectCore || !workflowCore) return;
+  const insightsCore = window.RowMendInsights;
+  if (!dataCore || !projectCore || !workflowCore || !insightsCore) return;
 
   const $ = id => document.getElementById(id);
   const state = {
     project: null,
     dataset: null,
     fileName: '',
-    result: null
+    result: null,
+    historyRun: null,
+    baselineRunId: null,
+    demoLoaded: false,
+    demoVariant: 'baseline'
   };
 
   function track(eventName, properties = {}) {
@@ -84,6 +89,7 @@
       </div>`;
 
     $('backToProject').href = `/projects/?project=${encodeURIComponent(project.id)}`;
+    state.baselineRunId = projectCore.getRunBaseline(project.id);
     renderHistory();
   }
 
@@ -117,6 +123,8 @@
       state.dataset = dataset;
       state.fileName = file.name;
       state.result = null;
+      state.demoLoaded = false;
+      $('loadRunnerDemo').textContent = 'Use demo vendor dataset';
 
       $('runnerFileSummary').innerHTML = `<strong>${escapeHtml(file.name)}</strong><span>${dataset.rows.length.toLocaleString()} rows · ${dataset.headers.length} columns</span>`;
       $('runWorkflow').disabled = !state.project;
@@ -136,8 +144,9 @@
     }
   }
 
-  function loadDemoDataset() {
-    const dataset = {
+  function loadDemoDataset(variant = null) {
+    const nextVariant = variant || (!state.demoLoaded || state.demoVariant === 'changed' ? 'baseline' : 'changed');
+    const baseline = {
       headers:['ID','NAME','EMAIL','AMOUNT'],
       rows:[
         {ID:'1001',NAME:' Acme North ',EMAIL:'SALES@ACMENORTH.EXAMPLE',AMOUNT:'1200.50'},
@@ -146,18 +155,36 @@
         {ID:'1004',NAME:'Delta Services',EMAIL:'finance@delta.example',AMOUNT:'640'}
       ]
     };
+    const changed = {
+      headers:['ID','NAME','EMAIL','AMOUNT'],
+      rows:[
+        {ID:'1001',NAME:'Acme North',EMAIL:'sales@acmenorth.example',AMOUNT:'1200.50'},
+        {ID:'1002',NAME:'Blue River Ltd',EMAIL:'',AMOUNT:'985'},
+        {ID:'1002',NAME:'Blue River Ltd',EMAIL:'',AMOUNT:'985'}
+      ]
+    };
+    const dataset = nextVariant === 'changed' ? changed : baseline;
 
     state.dataset = dataset;
-    state.fileName = 'demo-vendor.csv';
+    state.fileName = nextVariant === 'changed' ? 'demo-vendor-next.csv' : 'demo-vendor.csv';
     state.result = null;
+    state.demoLoaded = true;
+    state.demoVariant = nextVariant;
 
-    $('runnerFileSummary').innerHTML = '<strong>Demo vendor dataset</strong><span>4 rows · 4 columns</span>';
+    $('runnerFileSummary').innerHTML = nextVariant === 'changed'
+      ? '<strong>Changed demo delivery</strong><span>3 rows · 4 columns · intentional drift</span>'
+      : '<strong>Demo vendor baseline</strong><span>4 rows · 4 columns</span>';
+    $('loadRunnerDemo').textContent = nextVariant === 'changed'
+      ? 'Reset demo baseline'
+      : 'Load changed demo delivery';
     $('runWorkflow').disabled = !state.project;
     $('runnerEmpty').classList.remove('hidden');
     $('runnerResults').classList.add('hidden');
     setMessage(
       state.project
-        ? 'Demo dataset ready. Run the project workflow.'
+        ? (nextVariant === 'changed'
+          ? 'Changed demo delivery ready. Run it to see drift against the baseline.'
+          : 'Demo baseline ready. Run it once, then load the changed demo delivery.')
         : 'Demo dataset loaded. Return to Local Projects and choose or create a project first.',
       state.project ? 'success' : 'error'
     );
@@ -166,13 +193,161 @@
       rows:dataset.rows.length,
       columns:dataset.headers.length,
       file_type:'demo',
-      demo:true
+      demo:true,
+      demo_variant:nextVariant
     });
-    track('workflow_demo_loaded');
+    track('workflow_demo_loaded', { variant:nextVariant });
   }
 
   function metric(label, value, cls = '') {
     return `<div class="runner-metric ${cls}"><strong>${escapeHtml(value)}</strong><span>${escapeHtml(label)}</span></div>`;
+  }
+
+  function signed(value, suffix = '') {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '—';
+    const rounded = Math.abs(n) >= 10 ? Math.round(n) : Math.round(n * 10) / 10;
+    return `${rounded > 0 ? '+' : ''}${rounded}${suffix}`;
+  }
+
+  function sparkline(values) {
+    const clean = values.map(value => Number(value)).filter(Number.isFinite);
+    if (!clean.length) return '<div class="runner-insights-empty">No comparable history yet.</div>';
+    const min = Math.min(...clean);
+    const max = Math.max(...clean);
+    const range = max - min || 1;
+    const width = 100;
+    const height = 40;
+    const points = clean.map((value, index) => {
+      const x = clean.length === 1 ? width / 2 : (index / (clean.length - 1)) * width;
+      const y = height - 4 - ((value - min) / range) * (height - 8);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    return `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="${height - 4}" x2="${width}" y2="${height - 4}"></line><polyline points="${points}"></polyline></svg>`;
+  }
+
+  function trendCard(label, values, displayValue) {
+    return `<div class="runner-trend"><div class="runner-trend-head"><strong>${escapeHtml(label)}</strong><span>${escapeHtml(displayValue)}</span></div>${sparkline(values)}</div>`;
+  }
+
+  function compatibleHistory(history, current) {
+    return history.filter(run =>
+      run.id !== current?.id &&
+      run.profileMetrics &&
+      Array.isArray(run.profileMetrics.columnMetrics)
+    );
+  }
+
+  function currentComparison() {
+    if (!state.project || !state.historyRun?.profileMetrics) return null;
+    const history = projectCore.listRunHistory(state.project.id);
+    const candidates = compatibleHistory(history, state.historyRun);
+    if (!candidates.length) return null;
+
+    const savedId = projectCore.getRunBaseline(state.project.id);
+    const baseline = candidates.find(run => run.id === savedId) || candidates[0];
+    return {
+      history,
+      candidates,
+      baseline,
+      comparison:insightsCore.compareRuns(state.historyRun, baseline)
+    };
+  }
+
+  function renderInsights() {
+    const summary = $('runnerInsightsSummary');
+    const metrics = $('runnerInsightMetrics');
+    const trends = $('runnerTrends');
+    const signals = $('runnerSignals');
+    const select = $('baselineRun');
+    const downloadButton = $('downloadInsights');
+
+    if (!state.project || !state.historyRun?.profileMetrics) {
+      summary.innerHTML = '<div class="runner-insights-empty">Run insights will appear after a 0.9 workflow run.</div>';
+      metrics.innerHTML = '';
+      trends.innerHTML = '';
+      signals.innerHTML = '';
+      select.innerHTML = '<option value="">Previous compatible run</option>';
+      select.disabled = true;
+      downloadButton.disabled = true;
+      return;
+    }
+
+    const history = projectCore.listRunHistory(state.project.id);
+    const candidates = compatibleHistory(history, state.historyRun);
+    const savedId = projectCore.getRunBaseline(state.project.id);
+
+    select.innerHTML = [
+      '<option value="">Previous compatible run</option>',
+      ...candidates.map(run => `<option value="${escapeHtml(run.id)}">${escapeHtml(new Date(run.startedAt).toLocaleString())} · ${escapeHtml(run.status)}</option>`)
+    ].join('');
+    select.value = candidates.some(run => run.id === savedId) ? savedId : '';
+    select.disabled = candidates.length === 0;
+
+    if (!candidates.length) {
+      const legacyCount = history.filter(run => run.id !== state.historyRun.id && !run.profileMetrics).length;
+      summary.innerHTML = `<strong>Baseline needed</strong><span>Run this project again with 0.9 to compare drift.${legacyCount ? ` ${legacyCount} older run${legacyCount === 1 ? '' : 's'} do not contain the structural metrics required for comparison.` : ''}</span>`;
+      metrics.innerHTML = '';
+      signals.innerHTML = '';
+      const series = insightsCore.historySeries(history);
+      trends.innerHTML = [
+        trendCard('Input rows', series.map(item => item.inputRows), state.historyRun.inputRows.toLocaleString()),
+        trendCard('Run duration', series.map(item => item.durationMs), `${Math.round(state.historyRun.durationMs)} ms`)
+      ].join('');
+      downloadButton.disabled = true;
+      return;
+    }
+
+    const baseline = candidates.find(run => run.id === savedId) || candidates[0];
+    const comparison = insightsCore.compareRuns(state.historyRun, baseline);
+    const warningCount = comparison.signals.filter(item => item.severity === 'warning').length;
+    const infoCount = comparison.signals.filter(item => item.severity === 'info').length;
+
+    summary.innerHTML = warningCount
+      ? `<strong>${warningCount} drift signal${warningCount === 1 ? '' : 's'} need attention</strong><span>Compared with ${escapeHtml(new Date(baseline.startedAt).toLocaleString())}.${comparison.configChanged ? ' Workflow configuration also changed, so interpret data differences with that context.' : ''}</span>`
+      : `<strong>No material warning-level drift detected</strong><span>Compared with ${escapeHtml(new Date(baseline.startedAt).toLocaleString())}.${infoCount ? ' Informational changes are listed below.' : ''}</span>`;
+
+    const m = comparison.metrics;
+    metrics.innerHTML = [
+      `<div class="runner-insight-card ${Math.abs((m.inputRows.percentChange || 0) * 100) >= 20 ? 'warn' : ''}"><strong>${signed((m.inputRows.percentChange || 0) * 100, '%')}</strong><span>Input row change</span></div>`,
+      `<div class="runner-insight-card ${m.completeness.deltaPoints <= -5 ? 'warn' : ''}"><strong>${signed(m.completeness.deltaPoints, 'pp')}</strong><span>Completeness change</span></div>`,
+      `<div class="runner-insight-card ${m.duplicateRows.delta > 0 ? 'warn' : ''}"><strong>${signed(m.duplicateRows.delta)}</strong><span>Duplicate rows</span></div>`,
+      `<div class="runner-insight-card ${Number(m.invalidRows.delta) > 0 ? 'bad' : ''}"><strong>${m.invalidRows.delta === null ? '—' : signed(m.invalidRows.delta)}</strong><span>Invalid rows</span></div>`
+    ].join('');
+
+    const series = insightsCore.historySeries(history);
+    const profileSeries = series.filter(item => item.completeness !== null);
+    trends.innerHTML = [
+      trendCard('Input rows', series.map(item => item.inputRows), state.historyRun.inputRows.toLocaleString()),
+      trendCard('Completeness', profileSeries.map(item => item.completeness * 100), `${Math.round(state.historyRun.profileMetrics.completeness * 1000) / 10}%`),
+      trendCard('Invalid rows', series.filter(item => item.invalidRows !== null).map(item => item.invalidRows), state.historyRun.invalidRows === null ? 'n/a' : state.historyRun.invalidRows.toLocaleString()),
+      trendCard('Duplicates', profileSeries.map(item => item.duplicateRows), state.historyRun.profileMetrics.duplicateRows.toLocaleString()),
+      trendCard('Contract issues', series.map(item => item.contractErrors + item.contractWarnings), (state.historyRun.contractErrors + state.historyRun.contractWarnings).toLocaleString()),
+      trendCard('Run duration', series.map(item => item.durationMs), `${Math.round(state.historyRun.durationMs)} ms`)
+    ].join('');
+
+    signals.innerHTML = comparison.signals.length
+      ? comparison.signals.map(item => `<div class="runner-signal ${escapeHtml(item.severity)}"><strong>${escapeHtml(item.severity)}</strong><span>${escapeHtml(item.message)}</span></div>`).join('')
+      : '<div class="runner-insights-empty">No row-count, completeness, duplicate, validation, contract or column-level drift crossed the current thresholds.</div>';
+
+    downloadButton.disabled = false;
+  }
+
+  function insightsForExport() {
+    const context = currentComparison();
+    if (!context) return null;
+    return {
+      rowmendVersion:'0.9.0',
+      generatedAt:new Date().toISOString(),
+      project:{
+        id:state.project.id,
+        name:state.project.name
+      },
+      currentRun:state.historyRun,
+      baselineRun:context.baseline,
+      comparison:context.comparison,
+      series:insightsCore.historySeries(context.history)
+    };
   }
 
   function renderResult() {
@@ -219,6 +394,7 @@
     $('downloadSql').disabled = !result.sqlResult?.sql;
 
     renderHistory();
+    renderInsights();
   }
 
   function runWorkflow() {
@@ -239,7 +415,7 @@
         sqlMode:$('sqlMode').value
       });
 
-      projectCore.addRunSummary(
+      state.historyRun = projectCore.addRunSummary(
         state.project.id,
         workflowCore.runSummaryForHistory(state.result)
       );
@@ -277,7 +453,7 @@
   function reportForExport() {
     const r = state.result;
     return {
-      rowmendVersion:'0.8.0',
+      rowmendVersion:'0.9.0',
       project:{
         id:state.project.id,
         name:state.project.name
@@ -336,11 +512,26 @@
     wireDropzone();
 
     $('runWorkflow').addEventListener('click', runWorkflow);
-    $('loadRunnerDemo').addEventListener('click', loadDemoDataset);
+    $('loadRunnerDemo').addEventListener('click', () => loadDemoDataset());
+
+    $('baselineRun').addEventListener('change', event => {
+      if (!state.project) return;
+      projectCore.setRunBaseline(state.project.id, event.target.value || null);
+      state.baselineRunId = event.target.value || null;
+      renderInsights();
+      track('workflow_baseline_changed', { mode:event.target.value ? 'saved' : 'previous' });
+    });
+
+    $('downloadInsights').addEventListener('click', () => {
+      const report = insightsForExport();
+      if (!report) return;
+      download(JSON.stringify(report, null, 2), 'rowmend-run-insights.json', 'application/json;charset=utf-8');
+      track('workflow_output_exported', { output:'insights_json' });
+    });
 
     if (demoMode && state.project) {
       track('project_created', { demo:true });
-      loadDemoDataset();
+      loadDemoDataset('baseline');
     }
 
     $('downloadCleaned').addEventListener('click', () => {
@@ -370,7 +561,10 @@
     $('clearRunHistory').addEventListener('click', () => {
       if (!state.project) return;
       projectCore.clearRunHistory(state.project.id);
+      state.historyRun = null;
+      state.baselineRunId = null;
       renderHistory();
+      renderInsights();
       track('workflow_history_cleared');
       setMessage('Local run history cleared.', 'success');
     });

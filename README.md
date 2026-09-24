@@ -28,6 +28,9 @@ It helps you answer questions like:
 - Generate valid-row INSERT or MERGE/UPSERT output when the configured gates allow it.
 - Export cleaned CSV, validation-error CSV, SQL and a run report.
 - Keep up to 30 privacy-minimized run summaries per project in localStorage without storing source rows, file names or SQL text.
+- Compare repeat runs against the previous compatible run or a saved local baseline.
+- Surface row-count, completeness, duplicate, validation, contract and per-column drift signals.
+- Review compact local trends and export a Run Insights JSON report.
 
 
 ### Local Projects
@@ -87,6 +90,10 @@ Minimal product analytics are used to understand whether people reach useful act
 
 See the live privacy notice for details.
 
+## Product roadmap
+
+The planned path is **0.9 Run Insights & Data Drift → 0.10 Scale & Trust → 1.0 Pro commercial launch → 1.1 Automation & Connectors → 1.2 Team & Governance**. See [ROADMAP.md](ROADMAP.md) for release scope, commercial gates and the local-first Pro boundary.
+
 ## Quick start
 
 ### Workflow Runner
@@ -104,6 +111,7 @@ For your own recurring workflow:
 4. Load the next CSV/TSV/Excel delivery once.
 5. Choose the quality gates and SQL mode.
 6. Run the pipeline, export the current outputs and review compact local run history.
+7. Run a later delivery to compare it with the previous run or choose a saved local baseline in Run Insights.
 
 In-product guide: https://rowmend.netlify.app/guides/workflow-runner-quick-start/
 

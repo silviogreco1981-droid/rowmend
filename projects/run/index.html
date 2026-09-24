@@ -17,6 +17,7 @@
   <script defer src="/contract-core.js"></script>
   <script defer src="/project-core.js"></script>
   <script defer src="/workflow-core.js"></script>
+  <script defer src="/insights-core.js"></script>
   <script defer src="/projects/run/runner.js"></script>
 </head>
 <body>
@@ -27,10 +28,10 @@
 
   <main>
     <section class="runner-hero shell">
-      <div class="eyebrow">WORKFLOW RUNNER · V0.8.0</div>
+      <div class="eyebrow">WORKFLOW RUNNER · V0.9.0</div>
       <h1>Run the project as <span>one data workflow.</span></h1>
       <p class="lede">Load the new file once. RowMend can profile it, apply the project cleanup recipe, enforce its data contract, validate import rules and prepare SQL output — locally in your browser.</p>
-      <div class="trust-row"><span>✓ One file load</span><span>✓ Local quality gates</span><span>✓ Local run history</span></div>
+      <div class="trust-row"><span>✓ One file load</span><span>✓ Local quality gates</span><span>✓ Run insights & drift</span></div>
     </section>
 
     <section class="shell runner-layout">
@@ -92,6 +93,21 @@
           </div>
           <div class="runner-steps" id="runnerSteps"></div>
 
+          <div class="runner-insights" id="runnerInsights">
+            <div class="toolbox-toolbar runner-insights-toolbar">
+              <div><div class="eyebrow">RUN INSIGHTS</div><h2>What changed?</h2></div>
+              <div class="runner-baseline-controls">
+                <label for="baselineRun">Compare with</label>
+                <select id="baselineRun"></select>
+                <button class="mini-btn" id="downloadInsights" type="button" disabled>Insights JSON</button>
+              </div>
+            </div>
+            <div class="runner-insights-summary" id="runnerInsightsSummary"></div>
+            <div class="runner-insight-metrics" id="runnerInsightMetrics"></div>
+            <div class="runner-trends" id="runnerTrends"></div>
+            <div class="runner-signals" id="runnerSignals"></div>
+          </div>
+
           <div class="runner-output">
             <div class="toolbox-toolbar">
               <div><div class="eyebrow">OUTPUTS</div><h2>Export this run</h2></div>
@@ -119,11 +135,11 @@
     <section class="shell toolbox-note">
       <div class="privacy">
         <div><div class="eyebrow">HISTORY WITHOUT RAW DATA</div><h2>Remember what happened, not the dataset.</h2></div>
-        <div><p>RowMend stores only compact local run summaries: status, timestamps, row counts, warning/error counts and duration. Source rows, SQL text, file names and validation detail are not written to run history.</p><p class="muted">Future Pro automation can build on the same workflow model with scheduled execution, synchronized history and alerts.</p></div>
+        <div><p>RowMend stores compact local run summaries plus structural metrics used for drift detection: row counts, completeness, duplicates, inferred column types and missing/uniqueness rates. Source rows, cell values, SQL text, file names and validation detail are not written to run history.</p><p class="muted">Future Pro automation can build on the same workflow model with scheduled execution, synchronized history and alerts.</p></div>
       </div>
     </section>
   </main>
 
-  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>MVP 0.8.0 · local workflow execution</p><div><a href="/">Home</a><a href="/guides/">Guides</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>0.9.0 · local run insights & data drift</p><div><a href="/">Home</a><a href="/guides/">Guides</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
 </body>
 </html>

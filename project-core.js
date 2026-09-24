@@ -9,6 +9,7 @@
   const STORAGE_KEY = 'rowmend_projects_v070';
   const ACTIVE_KEY = 'rowmend_active_project_v070';
   const RUN_STORAGE_KEY = 'rowmend_project_runs_v080';
+  const RUN_BASELINE_KEY = 'rowmend_run_baselines_v090';
   const MAX_RUN_HISTORY = 30;
   const ARTIFACT_TYPES = ['profile', 'cleanRecipe', 'dataContract', 'importProfile', 'migrationPreset'];
 
@@ -155,6 +156,8 @@
       writeRunStore(runs);
     }
 
+    clearRunBaseline(id);
+
     if (typeof localStorage !== 'undefined' && localStorage.getItem(ACTIVE_KEY) === id) {
       localStorage.removeItem(ACTIVE_KEY);
     }
@@ -272,12 +275,85 @@
     localStorage.setItem(RUN_STORAGE_KEY, JSON.stringify(value));
   }
 
+  function readBaselineStore() {
+    if (typeof localStorage === 'undefined') return {};
+    try {
+      const parsed = JSON.parse(localStorage.getItem(RUN_BASELINE_KEY) || '{}');
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function writeBaselineStore(value) {
+    if (typeof localStorage === 'undefined') throw new Error('Local storage is not available.');
+    localStorage.setItem(RUN_BASELINE_KEY, JSON.stringify(value));
+  }
+
+  function setRunBaseline(projectId, runId) {
+    if (!getProject(projectId)) throw new Error('Project not found.');
+    const store = readBaselineStore();
+
+    if (!runId) {
+      delete store[projectId];
+      writeBaselineStore(store);
+      return null;
+    }
+
+    const run = listRunHistory(projectId).find(item => item.id === runId);
+    if (!run) throw new Error('Baseline run not found.');
+
+    store[projectId] = run.id;
+    writeBaselineStore(store);
+    return run.id;
+  }
+
+  function getRunBaseline(projectId) {
+    if (!getProject(projectId)) return null;
+    const id = readBaselineStore()[projectId];
+    if (!id) return null;
+    return listRunHistory(projectId).some(run => run.id === id) ? id : null;
+  }
+
+  function clearRunBaseline(projectId) {
+    if (typeof localStorage === 'undefined') return false;
+    const store = readBaselineStore();
+    if (!store[projectId]) return false;
+    delete store[projectId];
+    writeBaselineStore(store);
+    return true;
+  }
+
   function sanitizeRunSummary(summary) {
     if (!summary || typeof summary !== 'object') throw new Error('A valid run summary is required.');
     const allowedStatus = summary.status === 'PASS' ? 'PASS' : 'REVIEW_REQUIRED';
     const numberOrNull = value => value === null || value === undefined
       ? null
       : (Number.isFinite(Number(value)) ? Number(value) : null);
+    const rate = value => {
+      const number = numberOrNull(value);
+      if (number === null) return null;
+      return Math.max(0, Math.min(1, number));
+    };
+    const profileMetrics = summary.profileMetrics && typeof summary.profileMetrics === 'object'
+      ? {
+          rows:Math.max(0, numberOrNull(summary.profileMetrics.rows) || 0),
+          columns:Math.max(0, numberOrNull(summary.profileMetrics.columns) || 0),
+          completeness:rate(summary.profileMetrics.completeness) ?? 0,
+          duplicateRows:Math.max(0, numberOrNull(summary.profileMetrics.duplicateRows) || 0),
+          mixedColumns:Math.max(0, numberOrNull(summary.profileMetrics.mixedColumns) || 0),
+          allMissingColumns:Math.max(0, numberOrNull(summary.profileMetrics.allMissingColumns) || 0),
+          columnMetrics:Array.isArray(summary.profileMetrics.columnMetrics)
+            ? summary.profileMetrics.columnMetrics.slice(0, 500).map(column => ({
+                name:String(column?.name || '').slice(0, 160),
+                type:String(column?.type || 'string').slice(0, 40),
+                missingRate:rate(column?.missingRate) ?? 0,
+                uniqueRate:rate(column?.uniqueRate) ?? 0,
+                mixedTypeRate:rate(column?.mixedTypeRate) ?? 0
+              })).filter(column => column.name)
+            : []
+        }
+      : null;
 
     return {
       id: String(summary.id || makeId()),
@@ -291,7 +367,9 @@
       contractErrors: Math.max(0, numberOrNull(summary.contractErrors) || 0),
       contractWarnings: Math.max(0, numberOrNull(summary.contractWarnings) || 0),
       warningSteps: Math.max(0, numberOrNull(summary.warningSteps) || 0),
-      errorSteps: Math.max(0, numberOrNull(summary.errorSteps) || 0)
+      errorSteps: Math.max(0, numberOrNull(summary.errorSteps) || 0),
+      configFingerprint:summary.configFingerprint ? String(summary.configFingerprint).slice(0, 80) : null,
+      profileMetrics
     };
   }
 
@@ -318,6 +396,7 @@
     if (!store[projectId]) return false;
     delete store[projectId];
     writeRunStore(store);
+    clearRunBaseline(projectId);
     return true;
   }
 
@@ -345,6 +424,7 @@
     STORAGE_KEY,
     ACTIVE_KEY,
     RUN_STORAGE_KEY,
+    RUN_BASELINE_KEY,
     MAX_RUN_HISTORY,
     ARTIFACT_TYPES,
     createProject,
@@ -366,6 +446,9 @@
     projectCompletion,
     addRunSummary,
     listRunHistory,
+    setRunBaseline,
+    getRunBaseline,
+    clearRunBaseline,
     clearRunHistory,
     exportProject,
     importProject

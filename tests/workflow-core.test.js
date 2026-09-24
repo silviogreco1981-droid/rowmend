@@ -163,7 +163,12 @@ const project = {
   assert.ok(result.steps.filter(step => step.status === 'skipped').length >= 3);
   const summary = workflowCore.runSummaryForHistory(result);
   assert.strictEqual(summary.inputRows, 2);
+  assert.ok(summary.configFingerprint);
+  assert.ok(summary.profileMetrics);
+  assert.strictEqual(summary.profileMetrics.rows, 2);
+  assert.strictEqual(summary.profileMetrics.columnMetrics.length, 4);
   assert.ok(!('cleanedDataset' in summary));
+  assert.ok(!('topValues' in summary.profileMetrics.columnMetrics[0]));
 }
 
 console.log('Workflow core tests passed');
