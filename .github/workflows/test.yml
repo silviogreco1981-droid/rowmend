@@ -1,0 +1,28 @@
+name: RowMend tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  core-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check browser scripts
+        run: |
+          node --check data-core.js
+          node --check contract-core.js
+          node --check project-core.js
+          node --check workflow-core.js
+          node --check insights-core.js
+          node --check projects/run/runner.js
+      - name: Run core tests
+        run: |
+          for test in tests/*.test.js; do
+            echo "Running $test"
+            node "$test"
+          done
