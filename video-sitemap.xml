@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://rowmend.netlify.app/tutorial/</loc>
+    <video:video>
+      <video:thumbnail_loc>https://rowmend.netlify.app/assets/rowmend-0.9-tutorial-thumbnail.jpg</video:thumbnail_loc>
+      <video:title>RowMend 0.9 — Run Insights &amp; Data Drift</video:title>
+      <video:description>Watch RowMend establish a trusted baseline, process a changed recurring CSV delivery and surface data drift with Run Insights.</video:description>
+      <video:content_loc>https://rowmend.netlify.app/assets/rowmend-0.9-run-insights-tutorial.mp4</video:content_loc>
+      <video:duration>71</video:duration>
+      <video:publication_date>2026-09-24T00:00:00+02:00</video:publication_date>
+    </video:video>
+  </url>
+</urlset>
