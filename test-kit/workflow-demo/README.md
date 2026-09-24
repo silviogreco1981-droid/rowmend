@@ -1,15 +1,16 @@
-# RowMend 0.8 Workflow Runner demo
+# RowMend 0.9 Workflow Runner demo
 
 This folder provides a small end-to-end demo for **Local Projects + Workflow Runner**.
 
-It is designed to make the RowMend 0.8 workflow testable without building a project configuration from scratch.
+It is designed to make the RowMend 0.9 workflow and Run Insights testable without building a project configuration from scratch.
 
 ## Files
 
 | File | Purpose | Expected result |
 | --- | --- | --- |
 | `monthly-vendor-import.rowmend-project.json` | Importable RowMend Local Project | Provides cleanup recipe, data contract and PostgreSQL import profile |
-| `vendor-good.csv` | Valid recurring delivery | Workflow should PASS and SQL output should be available |
+| `vendor-good.csv` | Valid recurring delivery / baseline | Workflow should PASS and SQL output should be available |
+| `vendor-drift.csv` | Changed recurring delivery | Workflow should require review; Run Insights should flag row-count, completeness, duplicate/uniqueness and validation/contract drift |
 | `vendor-invalid-email.csv` | Value-level import problem | Contract should pass, import validation should flag one invalid row and SQL should be blocked by the default quality gate |
 | `vendor-schema-drift.csv` | Structural upstream change | Contract should detect missing `AMOUNT` plus unexpected `STATUS` and stop before import validation with the default contract-error gate |
 
@@ -22,12 +23,14 @@ It is designed to make the RowMend 0.8 workflow testable without building a proj
 5. Click **Run project**.
 6. Load one of the CSV files in this folder.
 7. Keep the default quality gates enabled for the first run.
-8. Run the workflow and review:
+8. Run `vendor-good.csv` first so 0.9 has a compatible baseline.
+9. Run `vendor-drift.csv` next and review:
    - Profile
    - Clean
    - Contract
-   - Validate
+   - Validate / quality-gate behavior
    - Output
+   - Run Insights
    - Local run history
 
 ## What the project demonstrates
@@ -77,6 +80,20 @@ Output    PASS
 
 The cleaned result should normalize spaces and email case.
 
+### vendor-drift.csv
+
+Run this after `vendor-good.csv`.
+
+Expected:
+- input row count drops from 4 to 3;
+- completeness drops because `EMAIL` contains empty values;
+- duplicate rows appear;
+- `ID` uniqueness drops and the contract reports duplicate-key errors;
+- the workflow requires review and the default contract-error gate stops later validation/output;
+- Run Insights compares the current run with the previous compatible run and surfaces the drift signals;
+- selecting an older compatible run in **Compare with** saves that run as the local baseline;
+- **Insights JSON** exports only privacy-minimized run/structural metrics.
+
 ### vendor-invalid-email.csv
 
 Expected:
@@ -103,11 +120,6 @@ With **Stop the pipeline before import validation when the data contract has err
 
 After running the demo, refresh or reopen the project and inspect local history.
 
-History should retain only compact run summaries such as:
-- status;
-- timestamp;
-- duration;
-- input/output row counts;
-- validation/contract counts.
+History should retain compact run summaries plus the structural metrics needed for drift analysis, including completeness, duplicate counts, inferred column types and missing/uniqueness/mixed-type rates.
 
-It should not persist the source CSV rows, source filename, generated SQL or row-level validation values.
+It should not persist source CSV rows, cell values, source filename, generated SQL or row-level validation values.
