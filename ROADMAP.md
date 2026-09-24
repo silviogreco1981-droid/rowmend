@@ -65,7 +65,7 @@ Privacy architecture:
 The first Pro release should not require RowMend to ingest raw customer CSV/Excel contents. CLI/CI execution remains local/customer-side; only configuration and privacy-minimized run summaries need synchronization unless the user explicitly opts into a future connector that requires cloud processing.
 
 Commercial milestone:
-1.0 is the first version designed to accept paying customers. Revenue can start here. Profitability is not guaranteed by the release itself; it depends on paid conversion and operating costs.
+1.0 is the first version designed for recurring software subscription revenue. Before 1.0, limited Founding Workflow Pilots may generate service revenue while validating whether recurring CSV/Excel workflow pain is strong enough to pay for. Pilot revenue is evidence, not a substitute for repeat-product usage. Profitability is not guaranteed by the release itself; it depends on paid conversion and operating costs.
 
 Initial pricing hypothesis to validate before launch:
 - Free: €0
@@ -106,7 +106,7 @@ Likely Team pricing should be evaluated only after Pro has active paying users.
 
 The path is:
 
-0.9 retention value → 0.10 reliability → 1.0 first paid Pro → 1.1 automation expansion → 1.2 team expansion.
+0.9 retention value + paid workflow pilots → 0.10 reliability → 1.0 first paid Pro subscription → 1.1 automation expansion → 1.2 team expansion.
 
 The key commercial signal is not raw traffic. It is repeated use of the same workflow. Track:
 visit → project_created → workflow_file_loaded → workflow_run_completed → workflow_output_exported
