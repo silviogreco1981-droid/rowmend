@@ -51,8 +51,9 @@
       <h2>8. Keep raw data out of the configuration container</h2>
       <p>A reusable project does not need to become a second data store. Configuration, rules and structural summaries can be portable without embedding the source CSV or Excel rows. This keeps the workflow lightweight and reduces unnecessary data retention.</p>
 
-      <h2>9. Keep lightweight run history, not a second copy of the dataset</h2>
-      <p>A recurring workflow benefits from remembering whether previous runs passed, how many rows were processed and how many warnings or errors occurred. That history can stay useful without retaining the raw source rows, generated SQL or row-level validation values.</p>
+      <h2>9. Compare each delivery with a previous good run</h2>
+      <p>A recurring workflow becomes more useful when history explains change, not just status. Compare row count, completeness, duplicate count, validation outcomes and column-level type, missingness and uniqueness metrics with a previous compatible run or a trusted baseline. This can expose data drift even when the file still satisfies its basic schema.</p>
+      <p>For a deeper treatment, see <a href="/guides/detect-data-drift-recurring-csv/">how to detect data drift in recurring CSV files</a>.</p>
 
       <section style="margin-top:56px;padding:28px;border:1px solid rgba(127,127,127,.24);border-radius:18px">
         <div class="eyebrow">LOCAL PROJECTS</div>
@@ -66,6 +67,6 @@
     </article>
   </main>
 
-  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>MVP 0.8.0 · local-first workflow projects</p><div><a href="/">Home</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>0.9.0 · local-first workflow projects</p><div><a href="/">Home</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
 </body>
 </html>
