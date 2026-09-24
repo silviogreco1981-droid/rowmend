@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>RowMend Videos</title>
+    <link>https://rowmend.netlify.app/</link>
+    <description>Video tutorials for RowMend local-first data workflows.</description>
+    <item>
+      <title>RowMend 0.9 — Run Insights &amp; Data Drift</title>
+      <link>https://rowmend.netlify.app/tutorial/</link>
+      <guid isPermaLink="true">https://rowmend.netlify.app/tutorial/</guid>
+      <pubDate>Thu, 24 Sep 2026 00:00:00 +0200</pubDate>
+      <description>A 71-second walkthrough of baseline comparison and data-drift detection in RowMend 0.9.</description>
+      <media:content url="https://rowmend.netlify.app/assets/rowmend-0.9-run-insights-tutorial.mp4" type="video/mp4" medium="video" duration="71" width="854" height="480">
+        <media:title type="plain">RowMend 0.9 — Run Insights &amp; Data Drift</media:title>
+        <media:description type="plain">Watch RowMend establish a trusted baseline, process a changed recurring CSV delivery and surface data drift with Run Insights.</media:description>
+        <media:thumbnail url="https://rowmend.netlify.app/assets/rowmend-0.9-tutorial-thumbnail.jpg" width="1280" height="720" />
+      </media:content>
+    </item>
+  </channel>
+</rss>
