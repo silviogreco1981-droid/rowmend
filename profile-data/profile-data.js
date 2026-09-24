@@ -6,6 +6,7 @@
   if (!core || !excelCore) return;
 
   const $ = id => document.getElementById(id);
+  const WORKER_CELL_THRESHOLD = 75000;
   const state = { dataset: null, profile: null, fileName: '', currentFile: null };
 
   function track(eventName, properties = {}) {
@@ -169,10 +170,39 @@
     if (first) renderDetail(first.name);
   }
 
-  function profileDataset(dataset, fileName, source) {
+  async function computeProfile(dataset) {
+    const cellCount = dataset.rows.length * dataset.headers.length;
+    if (typeof Worker === 'undefined' || cellCount < WORKER_CELL_THRESHOLD) {
+      return { profile:core.profileDataset(dataset.rows, dataset.headers), processingMode:'main_thread' };
+    }
+
+    try {
+      const profile = await new Promise((resolve, reject) => {
+        const worker = new Worker('/profile-worker.js');
+        const cleanup = () => worker.terminate();
+        worker.addEventListener('message', event => {
+          cleanup();
+          if (event.data?.ok) resolve(event.data.profile);
+          else reject(new Error(event.data?.error || 'Profiling worker failed.'));
+        }, { once:true });
+        worker.addEventListener('error', event => {
+          cleanup();
+          reject(new Error(event.message || 'Profiling worker failed.'));
+        }, { once:true });
+        worker.postMessage({ type:'profile', rows:dataset.rows, headers:dataset.headers });
+      });
+      return { profile, processingMode:'worker' };
+    } catch {
+      return { profile:core.profileDataset(dataset.rows, dataset.headers), processingMode:'fallback_main_thread' };
+    }
+  }
+
+  async function profileDataset(dataset, fileName, source) {
     state.dataset = dataset;
     state.fileName = fileName;
-    state.profile = core.profileDataset(dataset.rows, dataset.headers);
+    const startedAt = performance.now();
+    const computed = await computeProfile(dataset);
+    state.profile = computed.profile;
     render();
 
     track('profile_completed', {
@@ -181,7 +211,9 @@
       columns: state.profile.summary.columns,
       duplicate_rows: state.profile.summary.duplicateRows,
       mixed_columns: state.profile.summary.mixedColumns,
-      has_missing: state.profile.summary.missingCells > 0
+      has_missing: state.profile.summary.missingCells > 0,
+      processing_mode:computed.processingMode,
+      duration_ms:Math.round(performance.now() - startedAt)
     });
   }
 
@@ -210,7 +242,7 @@
       const dataset = await readFile(file, sheetName);
       if (!dataset.headers.length) throw new Error('No columns were found in the file.');
       syncExcelSheetSelector(file, dataset);
-      profileDataset(dataset, file.name, 'file');
+      await profileDataset(dataset, file.name, 'file');
       setMessage(`${file.name}${dataset.sheetName ? ` · ${dataset.sheetName}` : ''} profiled locally.`, 'success');
       if (sheetChange) {
         track('excel_sheet_selected', {
@@ -231,7 +263,7 @@
     }
   }
 
-  function loadDemo() {
+  async function loadDemo() {
     state.currentFile = null;
     $('profileExcelSheetGroup').classList.add('hidden');
     const rows = [
@@ -243,7 +275,7 @@
       { CUSTOMER_ID:'1005', NAME:'Eva Gialli', EMAIL:'eva@example.com', COUNTRY:'DE', SIGNUP_DATE:'2026-04-11', CREDIT_LIMIT:'4100' }
     ];
     const dataset = { headers:Object.keys(rows[0]), rows };
-    profileDataset(dataset, 'customers-profile-demo.csv', 'demo');
+    await profileDataset(dataset, 'customers-profile-demo.csv', 'demo');
     setMessage('Demo dataset loaded.', 'success');
     track('profile_demo_loaded');
   }
