@@ -74,6 +74,9 @@ assert.ok(onboarding.includes("track('pro_interest', { source:'onboarding' })"),
   'Onboarding CTA must emit explicit commercial-intent analytics');
 assert.ok(feedback.includes("openFeedback('pro_interest')"),
   'Pricing CTA must open the Pro feedback flow');
+for (const key of ['utm_source','utm_medium','utm_campaign','utm_content']) {
+  assert.ok(feedback.includes(key), `Pro feedback must preserve ${key} attribution`);
+}
 assert.ok(onboarding.includes("openFeedback('onboarding_pro')"),
   'Onboarding CTA must open the Pro feedback flow');
 
