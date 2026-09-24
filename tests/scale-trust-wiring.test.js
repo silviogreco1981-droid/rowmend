@@ -51,6 +51,16 @@ assert.ok(profiler.includes('fallback_main_thread'), 'Profiler must preserve a w
 assert.ok(worker.includes("importScripts('/data-core.js')"), 'Profile worker must reuse the tested data core');
 assert.ok(worker.includes("payload.type !== 'profile'"), 'Profile worker must reject unsupported operations');
 
+const runner = read('projects/run/runner.js');
+const workflowWorker = read('workflow-worker.js');
+assert.ok(runner.includes("new Worker('/workflow-worker.js')"), 'Runner must offload large workflows');
+assert.ok(runner.includes('fallback_main_thread'), 'Runner must preserve a workflow worker fallback');
+assert.ok(runner.includes("processing_mode:executed.processingMode"), 'Runner must measure worker/main-thread execution mode');
+assert.ok(workflowWorker.includes("importScripts('/data-core.js', '/contract-core.js', '/workflow-core.js')"),
+  'Workflow worker must reuse tested workflow cores');
+assert.ok(workflowWorker.includes("payload.type !== 'run_workflow'"),
+  'Workflow worker must reject unsupported operations');
+
 const projectCore = read('project-core.js');
 assert.ok(projectCore.includes("EXPORT_FORMAT = 'rowmend-project'"), 'Projects must use a versioned export envelope');
 assert.ok(projectCore.includes('inspectProjectExport'), 'Projects must inspect import compatibility');
