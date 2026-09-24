@@ -2,7 +2,8 @@
   'use strict';
 
   const core = window.RowMendData;
-  if (!core) return;
+  const excelCore = window.RowMendExcel;
+  if (!core || !excelCore) return;
 
   const STORAGE_KEY = 'rowmend_transform_recipes_v050';
   const $ = id => document.getElementById(id);
@@ -10,7 +11,8 @@
     original: null,
     transformed: null,
     recipe: [],
-    fileName: ''
+    fileName: '',
+    currentFile: null
   };
 
   function track(eventName, properties = {}) {
@@ -36,28 +38,30 @@
     return mode;
   }
 
-  async function readFile(file) {
+  async function readFile(file, sheetName = '') {
     const ext = (file.name.split('.').pop() || '').toLowerCase();
 
     if (ext === 'csv' || ext === 'tsv') {
       const text = await file.text();
       const delimiter = selectedDelimiter(text, ext);
-      return core.parseDelimited(text, delimiter);
-    }
-
-    if ((ext === 'xlsx' || ext === 'xls') && window.XLSX) {
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type:'array', cellDates:false });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval:'', raw:false });
-      return { headers: rows.length ? Object.keys(rows[0]) : [], rows };
+      return { ...core.parseDelimited(text, delimiter), sheetName:'', sheetNames:[] };
     }
 
     if (ext === 'xlsx' || ext === 'xls') {
-      throw new Error('Excel parser is still loading. Please retry in a moment.');
+      return excelCore.readFile(file, sheetName);
     }
 
     throw new Error('Unsupported file type. Use CSV, TSV, XLSX or XLS.');
+  }
+
+  function syncExcelSheetSelector(file, dataset) {
+    state.currentFile = file;
+    const group = $('cleanExcelSheetGroup');
+    const select = $('cleanExcelSheet');
+    const names = Array.isArray(dataset.sheetNames) ? dataset.sheetNames : [];
+    select.replaceChildren(...names.map(name => new Option(name, name)));
+    if (dataset.sheetName) select.value = dataset.sheetName;
+    group.classList.toggle('hidden', names.length <= 1);
   }
 
   function metric(label, value, cls = '') {
@@ -285,18 +289,28 @@
     });
   }
 
-  async function handleFile(file) {
+  async function handleFile(file, sheetName = '', sheetChange = false) {
     try {
       setMessage('Reading the file locally…');
-      const dataset = await readFile(file);
+      const dataset = await readFile(file, sheetName);
+      syncExcelSheetSelector(file, dataset);
       loadDataset(dataset, file.name, 'file');
-      setMessage(`${file.name} ready for transformation.`, 'success');
+      setMessage(`${file.name}${dataset.sheetName ? ` · ${dataset.sheetName}` : ''} ready for transformation.`, 'success');
+      if (sheetChange) {
+        track('excel_sheet_selected', {
+          tool:'clean',
+          sheet_count:dataset.sheetNames.length,
+          sheet_index:Math.max(0, dataset.sheetNames.indexOf(dataset.sheetName))
+        });
+      }
     } catch (error) {
       setMessage(error.message || 'Unable to read the file.', 'error');
     }
   }
 
   function loadDemo() {
+    state.currentFile = null;
+    $('cleanExcelSheetGroup').classList.add('hidden');
     const rows = [
       { CUSTOMER_ID:'1001', NAME:'  Alice Rossi  ', EMAIL:'ALICE@EXAMPLE.COM', COUNTRY:'it', STATUS:'active' },
       { CUSTOMER_ID:'1002', NAME:'Bob Verdi', EMAIL:'bob@example.com', COUNTRY:'IT', STATUS:'ACTIVE' },
@@ -434,6 +448,9 @@
     const drop = $('cleanDrop');
 
     input.addEventListener('change', () => input.files[0] && handleFile(input.files[0]));
+    $('cleanExcelSheet').addEventListener('change', () => {
+      if (state.currentFile) handleFile(state.currentFile, $('cleanExcelSheet').value, true);
+    });
     ['dragenter','dragover'].forEach(eventName => drop.addEventListener(eventName, event => {
       event.preventDefault();
       drop.classList.add('drag');
