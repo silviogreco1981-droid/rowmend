@@ -12,6 +12,8 @@ RowMend is a local-first data operations toolbox and workflow runner. Local Proj
 
 **71-second walkthrough:** https://rowmend.netlify.app/tutorial/?utm_source=github&utm_medium=referral&utm_campaign=repository&utm_content=readme_tutorial
 
+**Founding Workflow Pilot — €59:** if you have a recurring CSV/Excel import or validation workflow and want one configured end-to-end in RowMend, apply here: https://tally.so/r/eq47KQ?utm_source=github&utm_medium=readme&utm_campaign=founding_pilot&utm_content=top_cta
+
 ## Why RowMend
 
 Import problems are usually discovered too late: after a spreadsheet reaches a database, ETL job, ERP/CRM import, or migration script. RowMend moves that check earlier in the workflow.
