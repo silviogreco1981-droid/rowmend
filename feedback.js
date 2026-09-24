@@ -46,7 +46,10 @@
   window.RowMendFeedback = { openFeedback, showFeedbackPrompt, feedbackUrl };
 
   promptOpen?.addEventListener('click', () => openFeedback(prompt?.dataset.source || 'prompt'));
-  proInterest?.addEventListener('click', () => openFeedback('pro_interest'));
+  proInterest?.addEventListener('click', () => {
+    window.RowMendAnalytics?.track('pro_interest', { source:'pricing' });
+    openFeedback('pro_interest');
+  });
   footerFeedback?.addEventListener('click', (event) => {
     event.preventDefault();
     openFeedback('footer');
