@@ -3,3 +3,15 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.sheetjs.com https://cloud.umami.is; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://cloud.umami.is https://gateway.umami.is; frame-src https://tally.so; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+
+/assets/rowmend-0.9-run-insights-tutorial.mp4
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Type: video/mp4
+
+/assets/rowmend-0.9-tutorial-thumbnail.jpg
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/rowmend-0.9-tutorial-captions.vtt
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Type: text/vtt
+
