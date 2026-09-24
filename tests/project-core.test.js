@@ -168,6 +168,13 @@ assert.strictEqual(core.listRunHistory(project.id)[0].configFingerprint, 'abcd12
 assert.strictEqual(core.listRunHistory(project.id)[0].profileMetrics.columnMetrics.length, 2);
 assert.ok(!('topValues' in core.listRunHistory(project.id)[0].profileMetrics.columnMetrics[0]));
 
+assert.strictEqual(core.getRunBaseline(project.id), null);
+assert.strictEqual(core.setRunBaseline(project.id, run1.id), run1.id);
+assert.strictEqual(core.getRunBaseline(project.id), run1.id);
+assert.strictEqual(core.setRunBaseline(project.id, null), null);
+assert.strictEqual(core.getRunBaseline(project.id), null);
+assert.strictEqual(core.setRunBaseline(project.id, run1.id), run1.id);
+
 for (let i = 0; i < 35; i += 1) {
   core.addRunSummary(project.id, {
     status:i % 2 ? 'PASS' : 'REVIEW_REQUIRED',
@@ -180,6 +187,7 @@ for (let i = 0; i < 35; i += 1) {
 assert.strictEqual(core.listRunHistory(project.id).length, core.MAX_RUN_HISTORY);
 assert.strictEqual(core.clearRunHistory(project.id), true);
 assert.strictEqual(core.listRunHistory(project.id).length, 0);
+assert.strictEqual(core.getRunBaseline(project.id), null);
 
 let invalidFailed = false;
 try {
