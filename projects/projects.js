@@ -124,7 +124,7 @@
     $('projectTitle').textContent = project.name;
     $('projectName').value = project.name;
     $('projectDescription').value = project.description || '';
-    $('projectDates').textContent = `Created ${formatDate(project.createdAt)} · updated ${formatDate(project.updatedAt)}`;
+    $('projectDates').textContent = `Created ${formatDate(project.createdAt)} · updated ${formatDate(project.updatedAt)} · configuration r${project.revision || 1} · schema v${project.projectVersion}`;
 
     const completion = core.projectCompletion(project);
     $('projectProgressText').textContent = `${completion.configured} of ${completion.total} workflow artifacts configured`;
@@ -371,11 +371,12 @@
   async function importProjectFile(file) {
     try {
       const text = await file.text();
+      const info = core.inspectProjectExport(text);
       const project = core.importProject(text);
       state.project = project;
       renderList();
       selectProject(project.id);
-      setMessage(`Imported project "${project.name}".`, 'success');
+      setMessage(`Imported project "${project.name}" · configuration r${project.revision}${info.legacy ? ' · legacy JSON upgraded' : ''}.`, 'success');
       track('project_imported', { configured:core.projectCompletion(project).configured });
     } catch (error) {
       setMessage(`Invalid project JSON: ${error.message}`, 'error');
