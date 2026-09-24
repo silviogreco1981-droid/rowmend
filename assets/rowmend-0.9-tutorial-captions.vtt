@@ -1,0 +1,34 @@
+WEBVTT
+
+00:00.000 --> 00:07.000
+Recurring files change. See what changed before you trust the next delivery.
+
+00:07.000 --> 00:13.000
+Create the demo project.
+
+00:13.000 --> 00:20.000
+Run the known-good delivery.
+
+00:20.000 --> 00:26.000
+Baseline established: PASS.
+
+00:26.000 --> 00:32.000
+Load the next delivery.
+
+00:32.000 --> 00:39.000
+The workflow stops before unsafe output.
+
+00:39.000 --> 00:46.000
+Run Insights compares the two deliveries.
+
+00:46.000 --> 00:53.000
+See exactly what changed.
+
+00:53.000 --> 01:00.000
+Keep lightweight local history.
+
+01:00.000 --> 01:06.000
+Your source file is not your run history.
+
+01:06.000 --> 01:11.000
+Run the next file. Know what changed.
