@@ -297,7 +297,9 @@
       trendCard('Input rows', series.map(item => item.inputRows), state.historyRun.inputRows.toLocaleString()),
       trendCard('Completeness', profileSeries.map(item => item.completeness * 100), `${Math.round(state.historyRun.profileMetrics.completeness * 1000) / 10}%`),
       trendCard('Invalid rows', series.filter(item => item.invalidRows !== null).map(item => item.invalidRows), state.historyRun.invalidRows === null ? 'n/a' : state.historyRun.invalidRows.toLocaleString()),
-      trendCard('Duplicates', profileSeries.map(item => item.duplicateRows), state.historyRun.profileMetrics.duplicateRows.toLocaleString())
+      trendCard('Duplicates', profileSeries.map(item => item.duplicateRows), state.historyRun.profileMetrics.duplicateRows.toLocaleString()),
+      trendCard('Contract issues', series.map(item => item.contractErrors + item.contractWarnings), (state.historyRun.contractErrors + state.historyRun.contractWarnings).toLocaleString()),
+      trendCard('Run duration', series.map(item => item.durationMs), `${Math.round(state.historyRun.durationMs)} ms`)
     ].join('');
 
     signals.innerHTML = comparison.signals.length
