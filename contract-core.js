@@ -140,8 +140,28 @@
     return { duplicateRows, duplicateGroups, examples };
   }
 
+  const REMEDIATION_HINTS = {
+    missing_column:'Check whether the source export changed its headers or mapping. Restore the expected column, or update the contract only if the change is intentional.',
+    type_changed:'Inspect the source formatting and normalize mixed values before import. Change the expected type only when the upstream format intentionally changed.',
+    missing_rate_exceeded:'Review why values became empty. Fill or derive values when appropriate, or relax the threshold only when the new missingness is acceptable.',
+    mixed_type_rate_exceeded:'Normalize the column to one representation before import and inspect the rows using the minority type.',
+    unique_violation:'Identify duplicate values before loading. Deduplicate only after confirming which record should be retained.',
+    required_value_missing:'Fill the required values or reject those rows before downstream loading; do not silently make the field optional unless the business rule changed.',
+    unexpected_column:'Confirm whether the new column is an intentional upstream addition. Add it to the contract only if it belongs in the recurring schema.',
+    row_count_below_minimum:'Confirm the source extract is complete and that filters or upstream failures did not remove expected records.',
+    row_count_above_maximum:'Check for duplicated batches, widened filters or an intentional increase in source volume.',
+    composite_key_duplicate:'Inspect duplicate key groups and resolve the authoritative row before generating downstream SQL.'
+  };
+
   function issue(type, severity, column, message, details = {}) {
-    return { type, severity, column: column || '', message, details };
+    return {
+      type,
+      severity,
+      column: column || '',
+      message,
+      remediation: REMEDIATION_HINTS[type] || 'Review the source change before updating the contract or downstream workflow.',
+      details
+    };
   }
 
   function checkContract(dataset, profile, contract) {
@@ -311,14 +331,15 @@
   }
 
   function issuesToCsv(result) {
-    const headers = ['severity','issue_type','column','message'];
+    const headers = ['severity','issue_type','column','message','suggested_action'];
     return [
       headers.join(','),
       ...(result?.issues || []).map(item => [
         item.severity,
         item.type,
         item.column,
-        item.message
+        item.message,
+        item.remediation || ''
       ].map(escapeCsv).join(','))
     ].join('\n');
   }
@@ -331,6 +352,7 @@
   return {
     CONTRACT_VERSION,
     TYPE_OPTIONS,
+    REMEDIATION_HINTS,
     createContract,
     validateContract,
     duplicateKeySummary,
