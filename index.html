@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="/toolbox.css" />
   <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script defer src="/excel-core.js"></script>
   <script defer src="analytics.js"></script>
   <script defer src="/project-core.js"></script>
   <script defer src="/project-context.js"></script>
@@ -123,7 +124,7 @@ WHEN MATCHED THEN UPDATE ...</pre>
     </section>
 
     <section class="tool-section" id="tool"><div class="shell">
-      <div class="section-heading"><div><div class="eyebrow">IMPORT CHECKER · ROWMEND V0.9.0</div><h2>Drop a file. See what will break.</h2></div><span class="local-badge">● processed locally</span></div>
+      <div class="section-heading"><div><div class="eyebrow">IMPORT CHECKER · ROWMEND V0.10.0 DEV</div><h2>Drop a file. See what will break.</h2></div><span class="local-badge">● processed locally</span></div>
 
       <div class="onboarding-card" id="onboardingCard" aria-live="polite">
         <div class="onboarding-head"><div><span class="eyebrow">QUICK START</span><h3>Get to a useful result in three steps.</h3></div><button class="onboarding-hide" id="onboardingHide" type="button">Hide</button></div>
@@ -141,6 +142,7 @@ WHEN MATCHED THEN UPDATE ...</pre>
           <label class="dropzone" id="dropzone" for="fileInput"><input id="fileInput" type="file" accept=".csv,.tsv,.xlsx,.xls" hidden /><span class="upload-icon">⇧</span><strong>Drop CSV or Excel here</strong><small>or click to choose a file</small><small class="muted">CSV · TSV · XLSX · XLS</small></label>
           <button class="text-btn" id="loadDemo" type="button">Use sample dataset instead</button>
           <div class="field-group"><label for="delimiterMode">CSV delimiter</label><select id="delimiterMode"><option value="auto">Auto detect</option><option value="comma">Comma (,)</option><option value="semicolon">Semicolon (;)</option><option value="tab">Tab</option><option value="pipe">Pipe (|)</option><option value="custom">Custom</option></select><input id="customDelimiter" class="hidden" maxlength="1" placeholder="e.g. ^" spellcheck="false" /><small id="detectedDelimiter" class="muted">Auto detect is used for CSV files.</small></div>
+          <div class="field-group hidden" id="excelSheetGroup"><label for="excelSheet">Excel worksheet</label><select id="excelSheet"></select><small class="muted">Choose which worksheet RowMend should process.</small></div>
           <div class="field-group"><label for="dialect">SQL dialect</label><select id="dialect"><option value="oracle">Oracle</option><option value="sqlserver">SQL Server</option><option value="postgres">PostgreSQL</option></select></div>
           <div class="field-group"><label for="tableName">Target table</label><input id="tableName" value="CUSTOMERS" spellcheck="false" /></div>
           <div class="field-group"><label for="keyColumn">Key column for MERGE</label><select id="keyColumn"><option value="">Load a file first</option></select></div>
