@@ -15,6 +15,11 @@
   function feedbackUrl(source = 'manual') {
     const url = new URL(FORM_BASE_URL);
     url.searchParams.set('source', source);
+    const current = new URL(window.location.href);
+    ['utm_source','utm_medium','utm_campaign','utm_content'].forEach(key => {
+      const value = current.searchParams.get(key);
+      if (value) url.searchParams.set(key, value.slice(0, 120));
+    });
     return url.toString();
   }
 
