@@ -44,6 +44,7 @@ assert.strictEqual(contractCore.validateContract(contract), true);
   };
   const result = contractCore.checkContract(candidate, profile(candidate), contract);
   assert.strictEqual(result.status, 'REVIEW_REQUIRED');
+  assert.ok(result.issues.every(item => typeof item.remediation === 'string' && item.remediation.length > 0));
   assert.ok(result.issues.some(i => i.type === 'missing_column' && i.column === 'EMAIL'));
   assert.ok(result.issues.some(i => i.type === 'unexpected_column' && i.column === 'REGION'));
 }
@@ -142,8 +143,9 @@ assert.strictEqual(contractCore.validateContract(contract), true);
     rows:[{CUSTOMER_ID:'1',NAME:'Alice'}]
   }), contract);
   const csv = contractCore.issuesToCsv(result);
-  assert.ok(csv.startsWith('severity,issue_type,column,message'));
+  assert.ok(csv.startsWith('severity,issue_type,column,message,suggested_action'));
   assert.ok(csv.includes('missing_column'));
+  assert.ok(csv.includes('Check whether the source export changed its headers or mapping.'));
 }
 
 console.log('Contract core tests passed');
