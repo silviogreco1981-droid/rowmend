@@ -9,6 +9,7 @@
   const STORAGE_KEY = 'rowmend_projects_v070';
   const ACTIVE_KEY = 'rowmend_active_project_v070';
   const RUN_STORAGE_KEY = 'rowmend_project_runs_v080';
+  const RUN_BASELINE_KEY = 'rowmend_run_baselines_v090';
   const MAX_RUN_HISTORY = 30;
   const ARTIFACT_TYPES = ['profile', 'cleanRecipe', 'dataContract', 'importProfile', 'migrationPreset'];
 
@@ -155,6 +156,8 @@
       writeRunStore(runs);
     }
 
+    clearRunBaseline(id);
+
     if (typeof localStorage !== 'undefined' && localStorage.getItem(ACTIVE_KEY) === id) {
       localStorage.removeItem(ACTIVE_KEY);
     }
@@ -272,6 +275,55 @@
     localStorage.setItem(RUN_STORAGE_KEY, JSON.stringify(value));
   }
 
+  function readBaselineStore() {
+    if (typeof localStorage === 'undefined') return {};
+    try {
+      const parsed = JSON.parse(localStorage.getItem(RUN_BASELINE_KEY) || '{}');
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function writeBaselineStore(value) {
+    if (typeof localStorage === 'undefined') throw new Error('Local storage is not available.');
+    localStorage.setItem(RUN_BASELINE_KEY, JSON.stringify(value));
+  }
+
+  function setRunBaseline(projectId, runId) {
+    if (!getProject(projectId)) throw new Error('Project not found.');
+    const store = readBaselineStore();
+
+    if (!runId) {
+      delete store[projectId];
+      writeBaselineStore(store);
+      return null;
+    }
+
+    const run = listRunHistory(projectId).find(item => item.id === runId);
+    if (!run) throw new Error('Baseline run not found.');
+
+    store[projectId] = run.id;
+    writeBaselineStore(store);
+    return run.id;
+  }
+
+  function getRunBaseline(projectId) {
+    if (!getProject(projectId)) return null;
+    const id = readBaselineStore()[projectId];
+    if (!id) return null;
+    return listRunHistory(projectId).some(run => run.id === id) ? id : null;
+  }
+
+  function clearRunBaseline(projectId) {
+    if (typeof localStorage === 'undefined') return false;
+    const store = readBaselineStore();
+    if (!store[projectId]) return false;
+    delete store[projectId];
+    writeBaselineStore(store);
+    return true;
+  }
+
   function sanitizeRunSummary(summary) {
     if (!summary || typeof summary !== 'object') throw new Error('A valid run summary is required.');
     const allowedStatus = summary.status === 'PASS' ? 'PASS' : 'REVIEW_REQUIRED';
@@ -344,6 +396,7 @@
     if (!store[projectId]) return false;
     delete store[projectId];
     writeRunStore(store);
+    clearRunBaseline(projectId);
     return true;
   }
 
@@ -371,6 +424,7 @@
     STORAGE_KEY,
     ACTIVE_KEY,
     RUN_STORAGE_KEY,
+    RUN_BASELINE_KEY,
     MAX_RUN_HISTORY,
     ARTIFACT_TYPES,
     createProject,
@@ -392,6 +446,9 @@
     projectCompletion,
     addRunSummary,
     listRunHistory,
+    setRunBaseline,
+    getRunBaseline,
+    clearRunBaseline,
     clearRunHistory,
     exportProject,
     importProject
