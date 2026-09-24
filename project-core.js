@@ -6,6 +6,9 @@
   'use strict';
 
   const PROJECT_VERSION = 1;
+  const ROWMEND_VERSION = '0.10.0-dev';
+  const EXPORT_FORMAT = 'rowmend-project';
+  const EXPORT_VERSION = 1;
   const STORAGE_KEY = 'rowmend_projects_v070';
   const ACTIVE_KEY = 'rowmend_active_project_v070';
   const RUN_STORAGE_KEY = 'rowmend_project_runs_v080';
@@ -46,6 +49,7 @@
     const timestamp = input.createdAt || nowIso();
     return {
       projectVersion: PROJECT_VERSION,
+      revision: Math.max(1, Number(input.revision) || 1),
       id: input.id || makeId(),
       name: normalizeName(input.name || 'Untitled project'),
       description: String(input.description || '').trim().slice(0, 1200),
@@ -84,9 +88,25 @@
     return true;
   }
 
+  function normalizeProject(project) {
+    if (!project || typeof project !== 'object') return project;
+    const next = clone(project);
+    next.revision = Math.max(1, Number(next.revision) || 1);
+    next.artifacts = { ...emptyArtifacts(), ...(next.artifacts || {}) };
+    return next;
+  }
+
   function validateProject(project) {
     if (!project || typeof project !== 'object') throw new Error('Invalid project.');
-    if (Number(project.projectVersion) !== PROJECT_VERSION) throw new Error('Unsupported project version.');
+    if (Number(project.projectVersion) !== PROJECT_VERSION) {
+      if (Number(project.projectVersion) > PROJECT_VERSION) {
+        throw new Error('This project was created by a newer RowMend project schema.');
+      }
+      throw new Error('Unsupported project version.');
+    }
+    if (project.revision !== undefined && (!Number.isInteger(Number(project.revision)) || Number(project.revision) < 1)) {
+      throw new Error('Invalid project revision.');
+    }
     if (!String(project.id || '').trim()) throw new Error('Project id is required.');
     normalizeName(project.name);
     if (!project.artifacts || typeof project.artifacts !== 'object') throw new Error('Project artifacts are missing.');
@@ -112,6 +132,7 @@
 
   function listProjects() {
     return Object.values(readAll())
+      .map(normalizeProject)
       .filter(project => {
         try { validateProject(project); return true; }
         catch { return false; }
@@ -121,18 +142,23 @@
   }
 
   function getProject(id) {
-    const project = readAll()[id];
+    const project = normalizeProject(readAll()[id]);
     if (!project) return null;
     validateProject(project);
     return clone(project);
   }
 
   function saveProject(project) {
-    validateProject(project);
+    const normalized = normalizeProject(project);
+    validateProject(normalized);
     const projects = readAll();
-    const next = clone(project);
+    const existing = normalizeProject(projects[normalized.id]);
+    const next = clone(normalized);
     next.name = normalizeName(next.name);
     next.description = String(next.description || '').trim().slice(0, 1200);
+    next.revision = existing
+      ? Math.max(Number(existing.revision) || 1, Number(next.revision) || 1) + 1
+      : Math.max(1, Number(next.revision) || 1);
     next.updatedAt = nowIso();
     projects[next.id] = next;
     writeAll(projects);
@@ -400,20 +426,52 @@
     return true;
   }
 
-  function exportProject(project) {
+  function inspectProjectExport(value) {
+    const parsed = typeof value === 'string' ? JSON.parse(value) : clone(value);
+    const wrapped = parsed?.format === EXPORT_FORMAT && parsed?.project;
+    if (parsed?.format && parsed.format !== EXPORT_FORMAT) {
+      throw new Error(`Unsupported project export format: ${parsed.format}`);
+    }
+    if (wrapped && Number(parsed.exportVersion || 0) > EXPORT_VERSION) {
+      throw new Error('This project export was created by a newer RowMend version.');
+    }
+
+    const project = normalizeProject(wrapped ? parsed.project : parsed);
     validateProject(project);
-    return JSON.stringify(project, null, 2);
+    return {
+      legacy: !wrapped,
+      format: wrapped ? parsed.format : 'legacy-project-json',
+      exportVersion: wrapped ? Number(parsed.exportVersion || 1) : null,
+      rowmendVersion: wrapped ? String(parsed.rowmendVersion || '') : '',
+      exportedAt: wrapped ? String(parsed.exportedAt || '') : '',
+      projectVersion: Number(project.projectVersion),
+      projectRevision: Number(project.revision || 1)
+    };
+  }
+
+  function exportProject(project) {
+    const normalized = normalizeProject(project);
+    validateProject(normalized);
+    return JSON.stringify({
+      format: EXPORT_FORMAT,
+      exportVersion: EXPORT_VERSION,
+      rowmendVersion: ROWMEND_VERSION,
+      exportedAt: nowIso(),
+      project: normalized
+    }, null, 2);
   }
 
   function importProject(value, options = {}) {
     const parsed = typeof value === 'string' ? JSON.parse(value) : clone(value);
-    validateProject(parsed);
+    inspectProjectExport(parsed);
+    const source = normalizeProject(parsed?.format === EXPORT_FORMAT && parsed?.project ? parsed.project : parsed);
 
     const project = createProject({
-      id: options.keepId ? parsed.id : makeId(),
-      name: options.name || parsed.name,
-      description: parsed.description,
-      artifacts: parsed.artifacts
+      id: options.keepId ? source.id : makeId(),
+      name: options.name || source.name,
+      description: source.description,
+      revision: source.revision,
+      artifacts: source.artifacts
     });
 
     return options.save === false ? project : saveProject(project);
@@ -421,6 +479,9 @@
 
   return {
     PROJECT_VERSION,
+    ROWMEND_VERSION,
+    EXPORT_FORMAT,
+    EXPORT_VERSION,
     STORAGE_KEY,
     ACTIVE_KEY,
     RUN_STORAGE_KEY,
@@ -428,6 +489,7 @@
     MAX_RUN_HISTORY,
     ARTIFACT_TYPES,
     createProject,
+    normalizeProject,
     validateProject,
     validateArtifact,
     listProjects,
@@ -451,6 +513,7 @@
     clearRunBaseline,
     clearRunHistory,
     exportProject,
+    inspectProjectExport,
     importProject
   };
 });
