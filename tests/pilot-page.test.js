@@ -15,7 +15,7 @@ const terms = read('terms.html');
 assert.ok(pilot.includes('<title>RowMend Founding Workflow Pilot'), 'Pilot page title missing');
 assert.ok(pilot.includes('Standard'), 'Pilot Standard scope missing');
 assert.ok(pilot.includes('€59'), 'Pilot Standard price missing');
-assert.ok(pilot.includes('Extended'), 'Pilot Extended scope missing');
+assert.ok(pilot.includes('EXTENDED'), 'Pilot Extended scope missing');
 assert.ok(pilot.includes('€119'), 'Pilot Extended price missing');
 assert.ok(pilot.includes('https://tally.so/r/eq47KQ'), 'Pilot application form link missing');
 assert.ok(pilot.includes('founding_pilot_apply_clicked'), 'Pilot apply analytics event missing');
