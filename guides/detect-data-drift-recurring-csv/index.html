@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How to Detect Data Drift in Recurring CSV Files — RowMend</title>
+  <meta name="description" content="Compare recurring CSV deliveries and detect row-count, completeness, duplicate, type, missing-value and uniqueness drift against a trusted baseline." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/guides/detect-data-drift-recurring-csv/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="How to Detect Data Drift in Recurring CSV Files — RowMend" />
+  <meta property="og:description" content="Use repeat-run comparisons to catch changes that a one-time CSV validation can miss." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://rowmend.netlify.app/guides/detect-data-drift-recurring-csv/" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script defer src="/analytics.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/projects/">Projects</a><a href="/profile-data/">Profile</a><a href="/clean-data/">Clean</a><a href="/data-contract/">Contract</a><a href="/migration-check/">Compare</a><a href="/#tool">Import</a></nav>
+  </header>
+
+  <main class="shell" style="max-width:900px;padding:72px 0 96px">
+    <article>
+      <div class="eyebrow">DATA DRIFT GUIDE</div>
+      <h1 style="font-size:clamp(42px,7vw,72px);letter-spacing:-.05em;line-height:.98;margin:18px 0 24px">How to detect data drift in recurring CSV files</h1>
+      <p class="lede">A recurring file can pass the same validation rules every month and still become materially different. Comparing each delivery with a previous good run helps expose changes in volume, completeness, duplication, types and uniqueness before they turn into downstream failures.</p>
+
+      <h2>1. Treat schema drift and data drift as different problems</h2>
+      <p>Schema drift is structural: columns appear or disappear, names change, or inferred types move from number to string. Data drift can happen even when the schema is unchanged: row count drops, missing values increase, duplicates appear or an identifier becomes less unique. Both matter in recurring imports.</p>
+
+      <h2>2. Start with a trusted baseline</h2>
+      <p>Choose a run that represents a delivery you accepted. A baseline does not need to contain the raw file forever; a compact structural summary can be enough for later comparisons. Useful baseline signals include row count, completeness, duplicate count, inferred column types and missing/uniqueness rates.</p>
+
+      <h2>3. Compare row counts in context</h2>
+      <p>A smaller or larger file is not automatically wrong, but a sudden change deserves attention. Percentage change is more useful than an absolute threshold when file sizes vary. The right warning threshold depends on the feed: a 20% shift may be suspicious for a monthly master-data export but normal for a daily transaction file.</p>
+
+      <h2>4. Watch completeness and missing-value rates</h2>
+      <p>Overall completeness can show broad degradation, while per-column missing rates reveal where it happened. A file may still contain every expected column but become unsafe because a previously complete key, email or amount field is now sparse.</p>
+
+      <h2>5. Track duplicates and uniqueness</h2>
+      <p>Duplicate rows and declining uniqueness are different signals. Exact duplicate rows can indicate repeated extraction or file assembly errors. A lower uniqueness rate in a business key can expose repeated identifiers even when the duplicated rows are otherwise different.</p>
+
+      <h2>6. Detect type and mixed-type changes</h2>
+      <p>Columns often drift gradually. A numeric amount field may begin receiving text placeholders, or a date field may mix several formats. Compare inferred types and mixed-type rates between runs so a mostly valid column does not hide a growing formatting problem.</p>
+
+      <h2>7. Separate configuration changes from data changes</h2>
+      <p>If cleanup rules, mappings or contract settings changed between runs, the comparison needs that context. Otherwise you may attribute a difference to the source when it was actually caused by a workflow edit. A configuration fingerprint makes that distinction visible without storing the full configuration in run history.</p>
+
+      <h2>8. Use drift as a review signal, not an automatic verdict</h2>
+      <p>Drift detection should explain what changed and help decide whether the delivery is trustworthy. It should not treat every difference as a failure. Combine longitudinal signals with explicit data contracts and row-level validation rules when a change must block downstream output.</p>
+
+      <h2>9. Keep the comparison privacy-minimized</h2>
+      <p>For many recurring workflows, useful drift analysis does not require retaining source rows or cell values. Row counts, aggregate rates, inferred types and other structural metrics can stay in local browser history while the actual CSV or Excel file remains outside the history store.</p>
+
+      <section style="margin-top:56px;padding:28px;border:1px solid rgba(127,127,127,.24);border-radius:18px">
+        <div class="eyebrow">ROWMEND RUN INSIGHTS</div>
+        <h2 style="margin-top:10px">Compare the next delivery with a previous run</h2>
+        <p>RowMend 0.9 adds Run Insights to Workflow Runner. Run a project once to establish a compatible history entry, then run the next delivery and review row-count, completeness, duplicate, validation, contract and column-level drift. You can also select a previous compatible run as a saved local baseline.</p>
+        <p>The built-in demo now includes a known-good baseline followed by a deliberately changed delivery, so you can see the comparison without configuring a project first.</p>
+        <p><a class="btn primary" href="/projects/">Try the drift demo</a> <a class="btn ghost" href="/guides/workflow-runner-quick-start/">Open the quick start</a></p>
+      </section>
+
+      <p style="margin-top:36px">For related workflow design, see <a href="/guides/repeatable-csv-data-workflow/">how to build a repeatable CSV workflow</a>, <a href="/guides/data-contract-schema-drift-csv/">how to detect schema drift with a data contract</a>, and <a href="/guides/messy-vendor-csv-excel-imports/">how to handle recurring vendor CSV and Excel files</a>.</p>
+    </article>
+  </main>
+
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>0.9.0 · Run Insights & Data Drift</p><div><a href="/">Home</a><a href="/guides/">Guides</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+</body>
+</html>
