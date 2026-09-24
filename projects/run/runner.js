@@ -2,10 +2,11 @@
   'use strict';
 
   const dataCore = window.RowMendData;
+  const excelCore = window.RowMendExcel;
   const projectCore = window.RowMendProjects;
   const workflowCore = window.RowMendWorkflow;
   const insightsCore = window.RowMendInsights;
-  if (!dataCore || !projectCore || !workflowCore || !insightsCore) return;
+  if (!dataCore || !excelCore || !projectCore || !workflowCore || !insightsCore) return;
 
   const $ = id => document.getElementById(id);
   const state = {
@@ -16,7 +17,8 @@
     historyRun: null,
     baselineRunId: null,
     demoLoaded: false,
-    demoVariant: 'baseline'
+    demoVariant: 'baseline',
+    currentFile: null
   };
 
   function track(eventName, properties = {}) {
@@ -42,27 +44,29 @@
     return mode;
   }
 
-  async function readDataset(file) {
+  async function readDataset(file, sheetName = '') {
     const ext = (file.name.split('.').pop() || '').toLowerCase();
 
     if (ext === 'csv' || ext === 'tsv') {
       const text = await file.text();
-      return dataCore.parseDelimited(text, selectedDelimiter(text, ext));
-    }
-
-    if ((ext === 'xlsx' || ext === 'xls') && window.XLSX) {
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type:'array', cellDates:false });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval:'', raw:false });
-      return { headers: rows.length ? Object.keys(rows[0]) : [], rows };
+      return { ...dataCore.parseDelimited(text, selectedDelimiter(text, ext)), sheetName:'', sheetNames:[] };
     }
 
     if (ext === 'xlsx' || ext === 'xls') {
-      throw new Error('Excel parser is still loading. Please retry in a moment.');
+      return excelCore.readFile(file, sheetName);
     }
 
     throw new Error('Unsupported file type. Use CSV, TSV, XLSX or XLS.');
+  }
+
+  function syncExcelSheetSelector(file, dataset) {
+    state.currentFile = file;
+    const group = $('runnerExcelSheetGroup');
+    const select = $('runnerExcelSheet');
+    const names = Array.isArray(dataset.sheetNames) ? dataset.sheetNames : [];
+    select.replaceChildren(...names.map(name => new Option(name, name)));
+    if (dataset.sheetName) select.value = dataset.sheetName;
+    group.classList.toggle('hidden', names.length <= 1);
   }
 
   function configuredLabel(artifact, yes, no) {
@@ -114,11 +118,12 @@
       </div>`).join('');
   }
 
-  async function handleFile(file) {
+  async function handleFile(file, sheetName = '', sheetChange = false) {
     try {
       setMessage('Reading the dataset locally…');
-      const dataset = await readDataset(file);
+      const dataset = await readDataset(file, sheetName);
       if (!dataset.headers.length) throw new Error('No columns were found in the dataset.');
+      syncExcelSheetSelector(file, dataset);
 
       state.dataset = dataset;
       state.fileName = file.name;
@@ -126,17 +131,26 @@
       state.demoLoaded = false;
       $('loadRunnerDemo').textContent = 'Use demo vendor dataset';
 
-      $('runnerFileSummary').innerHTML = `<strong>${escapeHtml(file.name)}</strong><span>${dataset.rows.length.toLocaleString()} rows · ${dataset.headers.length} columns</span>`;
+      $('runnerFileSummary').innerHTML = `<strong>${escapeHtml(file.name)}</strong><span>${dataset.rows.length.toLocaleString()} rows · ${dataset.headers.length} columns${dataset.sheetName ? ` · worksheet: ${escapeHtml(dataset.sheetName)}` : ''}</span>`;
       $('runWorkflow').disabled = !state.project;
       $('runnerEmpty').classList.remove('hidden');
       $('runnerResults').classList.add('hidden');
       setMessage('Dataset ready. Run the project workflow.', 'success');
 
-      track('workflow_file_loaded', {
-        rows:dataset.rows.length,
-        columns:dataset.headers.length,
-        file_type:(file.name.split('.').pop() || '').toLowerCase()
-      });
+      if (sheetChange) {
+        track('excel_sheet_selected', {
+          tool:'workflow_runner',
+          sheet_count:dataset.sheetNames.length,
+          sheet_index:Math.max(0, dataset.sheetNames.indexOf(dataset.sheetName))
+        });
+      } else {
+        track('workflow_file_loaded', {
+          rows:dataset.rows.length,
+          columns:dataset.headers.length,
+          file_type:(file.name.split('.').pop() || '').toLowerCase(),
+          sheet_count:dataset.sheetNames.length || undefined
+        });
+      }
     } catch (error) {
       state.dataset = null;
       $('runWorkflow').disabled = true;
@@ -145,6 +159,8 @@
   }
 
   function loadDemoDataset(variant = null) {
+    state.currentFile = null;
+    $('runnerExcelSheetGroup').classList.add('hidden');
     const nextVariant = variant || (!state.demoLoaded || state.demoVariant === 'changed' ? 'baseline' : 'changed');
     const baseline = {
       headers:['ID','NAME','EMAIL','AMOUNT'],
@@ -488,6 +504,9 @@
     const drop = $('runnerDrop');
 
     input.addEventListener('change', () => input.files[0] && handleFile(input.files[0]));
+    $('runnerExcelSheet').addEventListener('change', () => {
+      if (state.currentFile) handleFile(state.currentFile, $('runnerExcelSheet').value, true);
+    });
     ['dragenter','dragover'].forEach(eventName => drop.addEventListener(eventName, event => {
       event.preventDefault();
       drop.classList.add('drag');
