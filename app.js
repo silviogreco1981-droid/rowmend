@@ -222,7 +222,7 @@
     state.headers.forEach(header => { const cfg = state.config[header] || {}; if (cfg.unique) uniqueSeen[header] = new Map(); });
 
     const duplicateTargetNames = duplicateTargets();
-    if (duplicateTargetNames.length) issues.push({ level:'error', title:'Duplicate target column names', detail:`Each source column must map to a unique target. Duplicate target: ${duplicateTargetNames.join(', ')}` });
+    if (duplicateTargetNames.length) issues.push({ level:'error', title:'Duplicate target column names', detail:`Each source column must map to a unique target. Duplicate target: ${duplicateTargetNames.join(', ')}`, hint:'Rename one or more target mappings so every source column resolves to a distinct database column.' });
 
     state.rows.forEach((row, rowIndex) => {
       state.headers.forEach(header => {
@@ -247,17 +247,17 @@
     });
 
     state.schema.forEach(col => {
-      if (col.empty) issues.push({ level: col.empty / Math.max(1,col.count) > .25 ? 'error':'warn', title: `${col.empty} missing value${col.empty===1?'':'s'} in ${col.name}`, detail: `${Math.round(col.empty/Math.max(1,col.count)*100)}% of rows are empty in this source column.` });
+      if (col.empty) issues.push({ level: col.empty / Math.max(1,col.count) > .25 ? 'error':'warn', title: `${col.empty} missing value${col.empty===1?'':'s'} in ${col.name}`, detail: `${Math.round(col.empty/Math.max(1,col.count)*100)}% of rows are empty in this source column.`, hint:'Confirm whether the field is optional. If it is required, fill or reject the affected rows before generating SQL.' });
       const inconsistent = Object.entries(col.counts).filter(([t]) => t !== col.type).reduce((s,[,n])=>s+n,0);
-      if (inconsistent) issues.push({ level:'warn', title:`${inconsistent} type mismatch${inconsistent===1?'':'es'} in ${col.name}`, detail:`Dominant source type is ${col.type}.` });
+      if (inconsistent) issues.push({ level:'warn', title:`${inconsistent} type mismatch${inconsistent===1?'':'es'} in ${col.name}`, detail:`Dominant source type is ${col.type}.`, hint:'Inspect the minority values and normalize their representation, or explicitly configure the intended type in Mapping & Rules.' });
     });
 
     const exact = new Map(); let dup = 0;
     state.rows.forEach(r => { const k = JSON.stringify(r); if (exact.has(k)) dup++; else exact.set(k,true); });
-    if (dup) issues.push({ level:'warn', title:`${dup} exact duplicate row${dup===1?'':'s'} detected`, detail:'Duplicate records may create import or constraint errors.' });
+    if (dup) issues.push({ level:'warn', title:`${dup} exact duplicate row${dup===1?'':'s'} detected`, detail:'Duplicate records may create import or constraint errors.', hint:'Use Clean & Transform to remove exact duplicates after confirming the repeated rows are not meaningful records.' });
 
     const invalidRows = rowErrors.filter(e=>e.length).length;
-    if (invalidRows) issues.unshift({ level:'error', title:`${invalidRows} row${invalidRows===1?'':'s'} fail configured validation rules`, detail:'Invalid rows are excluded from SQL by default. Open Mapping & Rules or export the error CSV for details.' });
+    if (invalidRows) issues.unshift({ level:'error', title:`${invalidRows} row${invalidRows===1?'':'s'} fail configured validation rules`, detail:'Invalid rows are excluded from SQL by default. Open Mapping & Rules or export the error CSV for details.', hint:'Review the error CSV first; correct the source values or adjust a validation rule only when the business requirement actually changed.' });
     if (!issues.length) issues.push({ level:'ok', title:'No obvious issues detected', detail:'Basic and configured validation checks passed.' });
     state.rowErrors = rowErrors;
     state.issues = issues;
@@ -373,7 +373,7 @@
     const currentKey = preferredKey || $('keyColumn')?.value || state.headers[0] || '';
     validateRows();
     $('metrics').innerHTML=[['Rows',state.rows.length.toLocaleString()],['Columns',state.headers.length],['Quality',score()+'/100'],['Invalid rows',state.rowErrors.filter(e=>e.length).length]].map(([l,v])=>`<div class="metric"><strong>${v}</strong><span>${l}</span></div>`).join('');
-    $('issuesPanel').innerHTML=`<div class="issue-list">${state.issues.map(i=>`<div class="issue-item ${i.level}"><div class="icon">${i.level==='ok'?'✓':i.level==='error'?'×':'!'}</div><div><strong>${escapeHtml(i.title)}</strong><p>${escapeHtml(i.detail)}</p></div><small>${i.level}</small></div>`).join('')}</div>`;
+    $('issuesPanel').innerHTML=`<div class="issue-list">${state.issues.map(i=>`<div class="issue-item ${i.level}"><div class="icon">${i.level==='ok'?'✓':i.level==='error'?'×':'!'}</div><div><strong>${escapeHtml(i.title)}</strong><p>${escapeHtml(i.detail)}</p>${i.hint?`<p class="issue-remediation"><b>Try:</b> ${escapeHtml(i.hint)}</p>`:''}</div><small>${i.level}</small></div>`).join('')}</div>`;
     $('schemaPanel').innerHTML=`<table><thead><tr><th>Source</th><th>Target</th><th>Inferred</th><th>Configured</th><th>SQL type</th><th>Missing</th><th>Unique</th></tr></thead><tbody>${state.schema.map(c=>{const cfg=state.config[c.name]; const t=cfg.type==='auto'?c.type:cfg.type; return `<tr><td>${escapeHtml(c.name)}</td><td>${escapeHtml(cfg.target)}</td><td class="type">${c.type}</td><td class="type">${t}</td><td class="type">${sqlType(t,$('dialect').value)}</td><td>${c.empty}</td><td>${c.unique}</td></tr>`}).join('')}</tbody></table>`;
     const preview=state.rows.slice(0,25), cols=mappedColumns();
     $('previewPanel').innerHTML=`<table><thead><tr>${cols.map(c=>`<th>${escapeHtml(c.target)}</th>`).join('')}</tr></thead><tbody>${preview.map((r,i)=>`<tr class="${state.rowErrors[i]?.length?'invalid-row':''}">${cols.map(c=>`<td title="${escapeAttr(String(r[c.source]??''))}">${escapeHtml(String(r[c.source]??''))}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
