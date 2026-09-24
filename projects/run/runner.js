@@ -14,7 +14,9 @@
     fileName: '',
     result: null,
     historyRun: null,
-    baselineRunId: null
+    baselineRunId: null,
+    demoLoaded: false,
+    demoVariant: 'baseline'
   };
 
   function track(eventName, properties = {}) {
@@ -121,6 +123,8 @@
       state.dataset = dataset;
       state.fileName = file.name;
       state.result = null;
+      state.demoLoaded = false;
+      $('loadRunnerDemo').textContent = 'Use demo vendor dataset';
 
       $('runnerFileSummary').innerHTML = `<strong>${escapeHtml(file.name)}</strong><span>${dataset.rows.length.toLocaleString()} rows · ${dataset.headers.length} columns</span>`;
       $('runWorkflow').disabled = !state.project;
@@ -140,8 +144,9 @@
     }
   }
 
-  function loadDemoDataset() {
-    const dataset = {
+  function loadDemoDataset(variant = null) {
+    const nextVariant = variant || (!state.demoLoaded || state.demoVariant === 'changed' ? 'baseline' : 'changed');
+    const baseline = {
       headers:['ID','NAME','EMAIL','AMOUNT'],
       rows:[
         {ID:'1001',NAME:' Acme North ',EMAIL:'SALES@ACMENORTH.EXAMPLE',AMOUNT:'1200.50'},
@@ -150,18 +155,36 @@
         {ID:'1004',NAME:'Delta Services',EMAIL:'finance@delta.example',AMOUNT:'640'}
       ]
     };
+    const changed = {
+      headers:['ID','NAME','EMAIL','AMOUNT'],
+      rows:[
+        {ID:'1001',NAME:'Acme North',EMAIL:'sales@acmenorth.example',AMOUNT:'1200.50'},
+        {ID:'1002',NAME:'Blue River Ltd',EMAIL:'',AMOUNT:'985'},
+        {ID:'1002',NAME:'Blue River Ltd',EMAIL:'',AMOUNT:'985'}
+      ]
+    };
+    const dataset = nextVariant === 'changed' ? changed : baseline;
 
     state.dataset = dataset;
-    state.fileName = 'demo-vendor.csv';
+    state.fileName = nextVariant === 'changed' ? 'demo-vendor-next.csv' : 'demo-vendor.csv';
     state.result = null;
+    state.demoLoaded = true;
+    state.demoVariant = nextVariant;
 
-    $('runnerFileSummary').innerHTML = '<strong>Demo vendor dataset</strong><span>4 rows · 4 columns</span>';
+    $('runnerFileSummary').innerHTML = nextVariant === 'changed'
+      ? '<strong>Changed demo delivery</strong><span>3 rows · 4 columns · intentional drift</span>'
+      : '<strong>Demo vendor baseline</strong><span>4 rows · 4 columns</span>';
+    $('loadRunnerDemo').textContent = nextVariant === 'changed'
+      ? 'Reset demo baseline'
+      : 'Load changed demo delivery';
     $('runWorkflow').disabled = !state.project;
     $('runnerEmpty').classList.remove('hidden');
     $('runnerResults').classList.add('hidden');
     setMessage(
       state.project
-        ? 'Demo dataset ready. Run the project workflow.'
+        ? (nextVariant === 'changed'
+          ? 'Changed demo delivery ready. Run it to see drift against the baseline.'
+          : 'Demo baseline ready. Run it once, then load the changed demo delivery.')
         : 'Demo dataset loaded. Return to Local Projects and choose or create a project first.',
       state.project ? 'success' : 'error'
     );
@@ -170,9 +193,10 @@
       rows:dataset.rows.length,
       columns:dataset.headers.length,
       file_type:'demo',
-      demo:true
+      demo:true,
+      demo_variant:nextVariant
     });
-    track('workflow_demo_loaded');
+    track('workflow_demo_loaded', { variant:nextVariant });
   }
 
   function metric(label, value, cls = '') {
@@ -488,7 +512,7 @@
     wireDropzone();
 
     $('runWorkflow').addEventListener('click', runWorkflow);
-    $('loadRunnerDemo').addEventListener('click', loadDemoDataset);
+    $('loadRunnerDemo').addEventListener('click', () => loadDemoDataset());
 
     $('baselineRun').addEventListener('change', event => {
       if (!state.project) return;
@@ -507,7 +531,7 @@
 
     if (demoMode && state.project) {
       track('project_created', { demo:true });
-      loadDemoDataset();
+      loadDemoDataset('baseline');
     }
 
     $('downloadCleaned').addEventListener('click', () => {
