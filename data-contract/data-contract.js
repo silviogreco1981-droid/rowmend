@@ -364,6 +364,7 @@
         <td class="type">${escapeHtml(item.type.replace(/_/g, ' '))}</td>
         <td>${escapeHtml(item.column || '—')}</td>
         <td>${escapeHtml(item.message)}</td>
+        <td>${escapeHtml(item.remediation || 'Review the source change before changing the contract.')}</td>
       </tr>`).join('');
 
     $('exportContractIssues').disabled = result.issues.length === 0;
