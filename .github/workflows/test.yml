@@ -16,6 +16,7 @@ jobs:
         run: |
           node --check data-core.js
           node --check excel-core.js
+          node --check profile-worker.js
           node --check contract-core.js
           node --check project-core.js
           node --check workflow-core.js
