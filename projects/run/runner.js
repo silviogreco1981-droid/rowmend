@@ -9,6 +9,7 @@
   if (!dataCore || !excelCore || !projectCore || !workflowCore || !insightsCore) return;
 
   const $ = id => document.getElementById(id);
+  const WORKER_CELL_THRESHOLD = 75000;
   const state = {
     project: null,
     dataset: null,
@@ -418,11 +419,48 @@
     renderInsights();
   }
 
-  function runWorkflow() {
-    if (!state.project || !state.dataset) return;
+  async function executeWorkflow(dataset, project, settings) {
+    const cellCount = dataset.rows.length * dataset.headers.length;
+    if (typeof Worker === 'undefined' || cellCount < WORKER_CELL_THRESHOLD) {
+      return { result:workflowCore.runWorkflow(dataset, project, settings), processingMode:'main_thread' };
+    }
 
     try {
-      setMessage('Running the local workflow…');
+      const result = await new Promise((resolve, reject) => {
+        const worker = new Worker('/workflow-worker.js');
+        const cleanup = () => worker.terminate();
+        worker.addEventListener('message', event => {
+          cleanup();
+          if (event.data?.ok) resolve(event.data.result);
+          else reject(new Error(event.data?.error || 'Workflow worker failed.'));
+        }, { once:true });
+        worker.addEventListener('error', event => {
+          cleanup();
+          reject(new Error(event.message || 'Workflow worker failed.'));
+        }, { once:true });
+        worker.postMessage({ type:'run_workflow', dataset, project, settings });
+      });
+      return { result, processingMode:'worker' };
+    } catch {
+      return { result:workflowCore.runWorkflow(dataset, project, settings), processingMode:'fallback_main_thread' };
+    }
+  }
+
+  async function runWorkflow() {
+    if (!state.project || !state.dataset) return;
+
+    const runButton = $('runWorkflow');
+    const settings = {
+      stopOnContractErrors:$('stopOnContractErrors').checked,
+      blockSqlOnInvalidRows:$('blockSqlOnInvalidRows').checked,
+      sqlMode:$('sqlMode').value
+    };
+
+    try {
+      runButton.disabled = true;
+      runButton.setAttribute('aria-busy', 'true');
+      const largeDataset = state.dataset.rows.length * state.dataset.headers.length >= WORKER_CELL_THRESHOLD;
+      setMessage(largeDataset ? 'Large dataset detected. Running the workflow in the background…' : 'Running the local workflow…');
       track('workflow_run_started', {
         has_recipe:Boolean(state.project.artifacts.cleanRecipe),
         has_contract:Boolean(state.project.artifacts.dataContract),
@@ -430,11 +468,9 @@
         rows:state.dataset.rows.length
       });
 
-      state.result = workflowCore.runWorkflow(state.dataset, state.project, {
-        stopOnContractErrors:$('stopOnContractErrors').checked,
-        blockSqlOnInvalidRows:$('blockSqlOnInvalidRows').checked,
-        sqlMode:$('sqlMode').value
-      });
+      const startedAt = performance.now();
+      const executed = await executeWorkflow(state.dataset, state.project, settings);
+      state.result = executed.result;
 
       state.historyRun = projectCore.addRunSummary(
         state.project.id,
@@ -452,11 +488,16 @@
         contract_errors:state.result.summary.contractErrors,
         contract_warnings:state.result.summary.contractWarnings,
         error_steps:state.result.summary.errorSteps,
-        warning_steps:state.result.summary.warningSteps
+        warning_steps:state.result.summary.warningSteps,
+        processing_mode:executed.processingMode,
+        elapsed_ms:Math.round(performance.now() - startedAt)
       });
     } catch (error) {
       setMessage(error.message || 'Unable to run the workflow.', 'error');
       track('workflow_run_failed', { stage:'execution' });
+    } finally {
+      runButton.removeAttribute('aria-busy');
+      runButton.disabled = !state.project || !state.dataset;
     }
   }
 
@@ -474,10 +515,12 @@
   function reportForExport() {
     const r = state.result;
     return {
-      rowmendVersion:'0.9.0',
+      rowmendVersion:'0.10.0-dev',
       project:{
         id:state.project.id,
-        name:state.project.name
+        name:state.project.name,
+        revision:state.project.revision || 1,
+        projectVersion:state.project.projectVersion
       },
       status:r.status,
       startedAt:r.startedAt,
