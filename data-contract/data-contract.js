@@ -2,8 +2,9 @@
   'use strict';
 
   const dataCore = window.RowMendData;
+  const excelCore = window.RowMendExcel;
   const contractCore = window.RowMendContract;
-  if (!dataCore || !contractCore) return;
+  if (!dataCore || !excelCore || !contractCore) return;
 
   const STORAGE_KEY = 'rowmend_data_contracts_v060';
   const $ = id => document.getElementById(id);
@@ -13,6 +14,8 @@
     baselineFileName: '',
     candidate: null,
     candidateFileName: '',
+    baselineFile: null,
+    candidateFile: null,
     contract: null,
     result: null
   };
@@ -40,27 +43,31 @@
     return mode;
   }
 
-  async function readDataset(file) {
+  async function readDataset(file, sheetName = '') {
     const ext = (file.name.split('.').pop() || '').toLowerCase();
 
     if (ext === 'csv' || ext === 'tsv') {
       const text = await file.text();
-      return dataCore.parseDelimited(text, selectedDelimiter(text, ext));
-    }
-
-    if ((ext === 'xlsx' || ext === 'xls') && window.XLSX) {
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type:'array', cellDates:false });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval:'', raw:false });
-      return { headers: rows.length ? Object.keys(rows[0]) : [], rows };
+      return { ...dataCore.parseDelimited(text, selectedDelimiter(text, ext)), sheetName:'', sheetNames:[] };
     }
 
     if (ext === 'xlsx' || ext === 'xls') {
-      throw new Error('Excel parser is still loading. Please retry in a moment.');
+      return excelCore.readFile(file, sheetName);
     }
 
     throw new Error('Unsupported file type. Use CSV, TSV, XLSX or XLS.');
+  }
+
+  function syncExcelSheetSelector(kind, file, dataset) {
+    const baseline = kind === 'baseline';
+    const group = $(baseline ? 'baselineExcelSheetGroup' : 'candidateExcelSheetGroup');
+    const select = $(baseline ? 'baselineExcelSheet' : 'candidateExcelSheet');
+    const names = Array.isArray(dataset.sheetNames) ? dataset.sheetNames : [];
+    if (baseline) state.baselineFile = file;
+    else state.candidateFile = file;
+    select.replaceChildren(...names.map(name => new Option(name, name)));
+    if (dataset.sheetName) select.value = dataset.sheetName;
+    group.classList.toggle('hidden', names.length <= 1);
   }
 
   function fileSummaryHtml(fileName, dataset) {
@@ -224,51 +231,73 @@
     $('contractResultsStage').classList.add('hidden');
   }
 
-  async function loadBaselineFile(file) {
+  async function loadBaselineFile(file, sheetName = '', sheetChange = false) {
     try {
       setMessage('contractMessage', 'Reading baseline locally…');
-      const dataset = await readDataset(file);
+      const dataset = await readDataset(file, sheetName);
       if (!dataset.headers.length) throw new Error('No columns were found in the baseline.');
       state.baseline = dataset;
       state.baselineFileName = file.name;
-      $('baselineSummary').innerHTML = fileSummaryHtml(file.name, dataset);
+      syncExcelSheetSelector('baseline', file, dataset);
+      $('baselineSummary').innerHTML = fileSummaryHtml(file.name + (dataset.sheetName ? ` · ${dataset.sheetName}` : ''), dataset);
       $('generateContract').disabled = false;
       clearResult();
       setMessage('contractMessage', 'Baseline loaded. Generate a contract when ready.', 'success');
-      track('contract_baseline_loaded', {
-        source:'file',
-        rows:dataset.rows.length,
-        columns:dataset.headers.length,
-        file_type:(file.name.split('.').pop() || '').toLowerCase()
-      });
+      if (sheetChange) {
+        track('excel_sheet_selected', {
+          tool:'data_contract_baseline',
+          sheet_count:dataset.sheetNames.length,
+          sheet_index:Math.max(0, dataset.sheetNames.indexOf(dataset.sheetName))
+        });
+      } else {
+        track('contract_baseline_loaded', {
+          source:'file',
+          rows:dataset.rows.length,
+          columns:dataset.headers.length,
+          file_type:(file.name.split('.').pop() || '').toLowerCase(),
+          sheet_count:dataset.sheetNames.length || undefined
+        });
+      }
     } catch (error) {
       setMessage('contractMessage', error.message || 'Unable to read the baseline.', 'error');
     }
   }
 
-  async function loadCandidateFile(file) {
+  async function loadCandidateFile(file, sheetName = '', sheetChange = false) {
     try {
       setMessage('checkMessage', 'Reading candidate locally…');
-      const dataset = await readDataset(file);
+      const dataset = await readDataset(file, sheetName);
       if (!dataset.headers.length) throw new Error('No columns were found in the candidate dataset.');
       state.candidate = dataset;
       state.candidateFileName = file.name;
-      $('candidateSummary').innerHTML = fileSummaryHtml(file.name, dataset);
+      syncExcelSheetSelector('candidate', file, dataset);
+      $('candidateSummary').innerHTML = fileSummaryHtml(file.name + (dataset.sheetName ? ` · ${dataset.sheetName}` : ''), dataset);
       clearResult();
       updateCheckReadiness();
       setMessage('checkMessage', state.contract ? 'Candidate ready for contract checking.' : 'Candidate loaded. Create or load a contract next.', 'success');
-      track('contract_candidate_loaded', {
-        source:'file',
-        rows:dataset.rows.length,
-        columns:dataset.headers.length,
-        file_type:(file.name.split('.').pop() || '').toLowerCase()
-      });
+      if (sheetChange) {
+        track('excel_sheet_selected', {
+          tool:'data_contract_candidate',
+          sheet_count:dataset.sheetNames.length,
+          sheet_index:Math.max(0, dataset.sheetNames.indexOf(dataset.sheetName))
+        });
+      } else {
+        track('contract_candidate_loaded', {
+          source:'file',
+          rows:dataset.rows.length,
+          columns:dataset.headers.length,
+          file_type:(file.name.split('.').pop() || '').toLowerCase(),
+          sheet_count:dataset.sheetNames.length || undefined
+        });
+      }
     } catch (error) {
       setMessage('checkMessage', error.message || 'Unable to read the candidate dataset.', 'error');
     }
   }
 
   function loadBaselineDemo() {
+    state.baselineFile = null;
+    $('baselineExcelSheetGroup').classList.add('hidden');
     const rows = [
       { CUSTOMER_ID:'1001', NAME:'Alice Rossi', EMAIL:'alice@example.com', STATUS:'ACTIVE', AMOUNT:'2500.00', CREATED_AT:'2026-01-10' },
       { CUSTOMER_ID:'1002', NAME:'Bob Verdi', EMAIL:'bob@example.com', STATUS:'ACTIVE', AMOUNT:'1800.00', CREATED_AT:'2026-02-14' },
@@ -285,6 +314,8 @@
   }
 
   function loadCandidateDemo() {
+    state.candidateFile = null;
+    $('candidateExcelSheetGroup').classList.add('hidden');
     const rows = [
       { CUSTOMER_ID:'1001', NAME:'Alice Rossi', STATUS:'ACTIVE', AMOUNT:'2500.00', CREATED_AT:'2026-01-10', REGION:'EU' },
       { CUSTOMER_ID:'1002', NAME:'Bob Verdi', STATUS:'ACTIVE', AMOUNT:'oops', CREATED_AT:'2026-02-14', REGION:'EU' },
@@ -531,6 +562,12 @@
     refreshStoredContracts();
     wireDropzone('baselineDrop', 'baselineFile', loadBaselineFile);
     wireDropzone('candidateDrop', 'candidateFile', loadCandidateFile);
+    $('baselineExcelSheet').addEventListener('change', () => {
+      if (state.baselineFile) loadBaselineFile(state.baselineFile, $('baselineExcelSheet').value, true);
+    });
+    $('candidateExcelSheet').addEventListener('change', () => {
+      if (state.candidateFile) loadCandidateFile(state.candidateFile, $('candidateExcelSheet').value, true);
+    });
     wireEditorControls();
 
     $('loadContractDemo').addEventListener('click', loadBaselineDemo);
