@@ -2,10 +2,11 @@
   'use strict';
 
   const core = window.RowMendData;
-  if (!core) return;
+  const excelCore = window.RowMendExcel;
+  if (!core || !excelCore) return;
 
   const $ = id => document.getElementById(id);
-  const state = { dataset: null, profile: null, fileName: '' };
+  const state = { dataset: null, profile: null, fileName: '', currentFile: null };
 
   function track(eventName, properties = {}) {
     window.RowMendAnalytics?.track(eventName, properties);
@@ -30,31 +31,30 @@
     return mode;
   }
 
-  async function readFile(file) {
+  async function readFile(file, sheetName = '') {
     const ext = (file.name.split('.').pop() || '').toLowerCase();
 
     if (ext === 'csv' || ext === 'tsv') {
       const text = await file.text();
       const delimiter = selectedDelimiter(text, ext);
-      return core.parseDelimited(text, delimiter);
-    }
-
-    if ((ext === 'xlsx' || ext === 'xls') && window.XLSX) {
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: 'array', cellDates: false });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rawRows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
-      if (!rawRows.length) return { headers: [], rows: [] };
-
-      const headers = Object.keys(rawRows[0]);
-      return { headers, rows: rawRows };
+      return { ...core.parseDelimited(text, delimiter), sheetName:'', sheetNames:[] };
     }
 
     if (ext === 'xlsx' || ext === 'xls') {
-      throw new Error('Excel parser is still loading. Please retry in a moment.');
+      return excelCore.readFile(file, sheetName);
     }
 
     throw new Error('Unsupported file type. Use CSV, TSV, XLSX or XLS.');
+  }
+
+  function syncExcelSheetSelector(file, dataset) {
+    state.currentFile = file;
+    const group = $('profileExcelSheetGroup');
+    const select = $('profileExcelSheet');
+    const names = Array.isArray(dataset.sheetNames) ? dataset.sheetNames : [];
+    select.replaceChildren(...names.map(name => new Option(name, name)));
+    if (dataset.sheetName) select.value = dataset.sheetName;
+    group.classList.toggle('hidden', names.length <= 1);
   }
 
   function formatPercent(value) {
@@ -204,24 +204,36 @@
     }
   }
 
-  async function handleFile(file) {
+  async function handleFile(file, sheetName = '', sheetChange = false) {
     try {
       setMessage('Reading and profiling locally…');
-      const dataset = await readFile(file);
+      const dataset = await readFile(file, sheetName);
       if (!dataset.headers.length) throw new Error('No columns were found in the file.');
+      syncExcelSheetSelector(file, dataset);
       profileDataset(dataset, file.name, 'file');
-      setMessage(`${file.name} profiled locally.`, 'success');
-      track('profile_file_loaded', {
-        file_type: (file.name.split('.').pop() || '').toLowerCase(),
-        rows: dataset.rows.length,
-        columns: dataset.headers.length
-      });
+      setMessage(`${file.name}${dataset.sheetName ? ` · ${dataset.sheetName}` : ''} profiled locally.`, 'success');
+      if (sheetChange) {
+        track('excel_sheet_selected', {
+          tool:'profiler',
+          sheet_count:dataset.sheetNames.length,
+          sheet_index:Math.max(0, dataset.sheetNames.indexOf(dataset.sheetName))
+        });
+      } else {
+        track('profile_file_loaded', {
+          file_type: (file.name.split('.').pop() || '').toLowerCase(),
+          rows: dataset.rows.length,
+          columns: dataset.headers.length,
+          sheet_count:dataset.sheetNames.length || undefined
+        });
+      }
     } catch (error) {
       setMessage(error.message || 'Unable to profile the file.', 'error');
     }
   }
 
   function loadDemo() {
+    state.currentFile = null;
+    $('profileExcelSheetGroup').classList.add('hidden');
     const rows = [
       { CUSTOMER_ID:'1001', NAME:'Alice Rossi', EMAIL:'alice@example.com', COUNTRY:'IT', SIGNUP_DATE:'2026-01-10', CREDIT_LIMIT:'2500' },
       { CUSTOMER_ID:'1002', NAME:'Bob Verdi', EMAIL:'bob@example.com', COUNTRY:'IT', SIGNUP_DATE:'2026-02-14', CREDIT_LIMIT:'1800' },
@@ -252,6 +264,9 @@
     const drop = $('profileDrop');
 
     input.addEventListener('change', () => input.files[0] && handleFile(input.files[0]));
+    $('profileExcelSheet').addEventListener('change', () => {
+      if (state.currentFile) handleFile(state.currentFile, $('profileExcelSheet').value, true);
+    });
     ['dragenter','dragover'].forEach(eventName => drop.addEventListener(eventName, event => {
       event.preventDefault();
       drop.classList.add('drag');
