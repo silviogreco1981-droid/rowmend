@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="/toolbox.css" />
   <link rel="stylesheet" href="/data-contract/data-contract.css" />
   <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script defer src="/excel-core.js"></script>
   <script defer src="/analytics.js"></script>
   <script defer src="/project-core.js"></script>
   <script defer src="/project-context.js"></script>
@@ -63,6 +64,7 @@
             </label>
             <button class="text-btn" id="loadContractDemo" type="button">Use known-good sample dataset</button>
             <div class="contract-file-summary" id="baselineSummary"><span>No baseline loaded.</span></div>
+            <div class="field-group hidden" id="baselineExcelSheetGroup"><label for="baselineExcelSheet">Excel worksheet</label><select id="baselineExcelSheet"></select><small class="muted">Choose the baseline worksheet to profile.</small></div>
           </div>
           <div>
             <div class="field-group">
@@ -163,6 +165,7 @@
             </label>
             <button class="text-btn" id="loadCandidateDemo" type="button">Use drifted sample dataset</button>
             <div class="contract-file-summary" id="candidateSummary"><span>No candidate loaded.</span></div>
+            <div class="field-group hidden" id="candidateExcelSheetGroup"><label for="candidateExcelSheet">Excel worksheet</label><select id="candidateExcelSheet"></select><small class="muted">Choose the candidate worksheet to check.</small></div>
           </div>
           <div>
             <div class="contract-empty" id="checkPrompt">
