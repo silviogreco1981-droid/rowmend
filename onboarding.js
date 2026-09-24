@@ -88,6 +88,7 @@
   });
 
   proCta?.addEventListener('click', () => {
+    window.RowMendAnalytics?.track('pro_interest', { source: 'onboarding' });
     window.RowMendFeedback?.openFeedback('onboarding_pro');
   });
 
