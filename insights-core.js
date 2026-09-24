@@ -74,6 +74,9 @@
         : 5,
       uniquenessDropPoints: Number.isFinite(Number(options.uniquenessDropPoints))
         ? Math.max(0, Number(options.uniquenessDropPoints))
+        : 5,
+      mixedTypeIncreasePoints: Number.isFinite(Number(options.mixedTypeIncreasePoints))
+        ? Math.max(0, Number(options.mixedTypeIncreasePoints))
         : 5
     };
 
@@ -148,6 +151,30 @@
       ));
     }
 
+    if (number(current.contractWarnings, 0) > number(baseline.contractWarnings, 0)) {
+      signals.push(signal(
+        'contract_warnings_increased',
+        'warning',
+        'Data-contract warnings increased.',
+        {
+          current:number(current.contractWarnings, 0),
+          baseline:number(baseline.contractWarnings, 0)
+        }
+      ));
+    }
+
+    if (number(currentProfile.allMissingColumns, 0) > number(baselineProfile.allMissingColumns, 0)) {
+      signals.push(signal(
+        'all_missing_columns_increased',
+        'warning',
+        'The number of completely empty columns increased.',
+        {
+          current:number(currentProfile.allMissingColumns, 0),
+          baseline:number(baselineProfile.allMissingColumns, 0)
+        }
+      ));
+    }
+
     columns.forEach(column => {
       if (column.added) {
         signals.push(signal(
@@ -191,6 +218,15 @@
           'warning',
           `Uniqueness dropped by ${Math.abs(column.uniqueRateDeltaPoints).toFixed(1)} percentage points in "${column.name}".`,
           { column:column.name, deltaPoints:column.uniqueRateDeltaPoints }
+        ));
+      }
+      if (column.mixedTypeRateDeltaPoints !== null &&
+          column.mixedTypeRateDeltaPoints >= thresholds.mixedTypeIncreasePoints) {
+        signals.push(signal(
+          `mixed_type_rate_increased:${column.name}`,
+          'warning',
+          `Mixed-type values increased by ${column.mixedTypeRateDeltaPoints.toFixed(1)} percentage points in "${column.name}".`,
+          { column:column.name, deltaPoints:column.mixedTypeRateDeltaPoints }
         ));
       }
     });
@@ -237,6 +273,11 @@
           current:number(current.contractErrors, 0),
           baseline:number(baseline.contractErrors, 0),
           delta:number(current.contractErrors, 0) - number(baseline.contractErrors, 0)
+        },
+        contractWarnings:{
+          current:number(current.contractWarnings, 0),
+          baseline:number(baseline.contractWarnings, 0),
+          delta:number(current.contractWarnings, 0) - number(baseline.contractWarnings, 0)
         },
         durationMs:{
           current:number(current.durationMs, 0),
