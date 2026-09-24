@@ -115,6 +115,8 @@ For your own recurring workflow:
 
 In-product guide: https://rowmend.netlify.app/guides/workflow-runner-quick-start/
 
+Run Insights guide: https://rowmend.netlify.app/guides/detect-data-drift-recurring-csv/
+
 
 ### Local Projects
 
