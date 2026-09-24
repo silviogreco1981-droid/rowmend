@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/toolbox.css" />
   <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script defer src="/excel-core.js"></script>
   <script defer src="/analytics.js"></script>
   <script defer src="/project-core.js"></script>
   <script defer src="/project-context.js"></script>
@@ -64,6 +65,7 @@
             <option value="|">Pipe (|)</option>
           </select>
         </div>
+        <div class="field-group hidden" id="profileExcelSheetGroup"><label for="profileExcelSheet">Excel worksheet</label><select id="profileExcelSheet"></select><small class="muted">Choose which worksheet RowMend should process.</small></div>
         <div class="toolbox-actions">
           <button class="btn secondary full" id="exportProfileCsv" type="button" disabled>Export profile CSV</button>
           <button class="btn ghost full" id="exportProfileJson" type="button" disabled>Export profile JSON</button>
