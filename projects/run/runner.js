@@ -85,7 +85,7 @@
     $('runnerProjectSummary').innerHTML = `
       <div class="eyebrow">ACTIVE PROJECT</div>
       <h3>${escapeHtml(project.name)}</h3>
-      <p>${completion.configured}/${completion.total} workflow artifacts configured</p>
+      <p>${completion.configured}/${completion.total} workflow artifacts configured · configuration r${project.revision || 1}</p>
       <div class="runner-config">
         <div class="runner-config-row"><strong>Cleanup</strong><span>${configuredLabel(project.artifacts.cleanRecipe, 'configured', 'not configured')}</span></div>
         <div class="runner-config-row"><strong>Contract</strong><span>${configuredLabel(project.artifacts.dataContract, 'configured', 'not configured')}</span></div>
@@ -100,6 +100,7 @@
   function renderHistory() {
     if (!state.project) return;
     const history = projectCore.listRunHistory(state.project.id);
+    const savedBaselineId = projectCore.getRunBaseline(state.project.id);
     const wrap = $('runHistory');
 
     if (!history.length) {
@@ -111,7 +112,7 @@
       <div class="runner-history-item">
         <span class="runner-history-badge ${run.status === 'PASS' ? 'pass' : 'review'}">${escapeHtml(run.status)}</span>
         <div>
-          <strong>${escapeHtml(new Date(run.startedAt).toLocaleString())}</strong>
+          <strong>${escapeHtml(new Date(run.startedAt).toLocaleString())}${run.id === savedBaselineId ? ' · pinned baseline' : ''}</strong>
           <span>${run.inputRows.toLocaleString()} input → ${run.outputRows.toLocaleString()} output · ${run.invalidRows === null ? 'validation n/a' : `${run.invalidRows} invalid`}</span>
         </div>
         <span>${Math.max(0, Math.round(run.durationMs))} ms</span>
@@ -283,7 +284,7 @@
       metrics.innerHTML = '';
       trends.innerHTML = '';
       signals.innerHTML = '';
-      select.innerHTML = '<option value="">Previous compatible run</option>';
+      select.innerHTML = '<option value="">Previous compatible run (automatic)</option>';
       select.disabled = true;
       downloadButton.disabled = true;
       return;
@@ -294,8 +295,8 @@
     const savedId = projectCore.getRunBaseline(state.project.id);
 
     select.innerHTML = [
-      '<option value="">Previous compatible run</option>',
-      ...candidates.map(run => `<option value="${escapeHtml(run.id)}">${escapeHtml(new Date(run.startedAt).toLocaleString())} · ${escapeHtml(run.status)}</option>`)
+      '<option value="">Previous compatible run (automatic)</option>',
+      ...candidates.map(run => `<option value="${escapeHtml(run.id)}">Pin ${escapeHtml(new Date(run.startedAt).toLocaleString())} · ${escapeHtml(run.status)}</option>`)
     ].join('');
     select.value = candidates.some(run => run.id === savedId) ? savedId : '';
     select.disabled = candidates.length === 0;
@@ -314,14 +315,16 @@
       return;
     }
 
-    const baseline = candidates.find(run => run.id === savedId) || candidates[0];
+    const pinnedBaseline = candidates.find(run => run.id === savedId) || null;
+    const baseline = pinnedBaseline || candidates[0];
+    const baselineMode = pinnedBaseline ? 'Pinned baseline' : 'Previous compatible run';
     const comparison = insightsCore.compareRuns(state.historyRun, baseline);
     const warningCount = comparison.signals.filter(item => item.severity === 'warning').length;
     const infoCount = comparison.signals.filter(item => item.severity === 'info').length;
 
     summary.innerHTML = warningCount
-      ? `<strong>${warningCount} drift signal${warningCount === 1 ? '' : 's'} need attention</strong><span>Compared with ${escapeHtml(new Date(baseline.startedAt).toLocaleString())}.${comparison.configChanged ? ' Workflow configuration also changed, so interpret data differences with that context.' : ''}</span>`
-      : `<strong>No material warning-level drift detected</strong><span>Compared with ${escapeHtml(new Date(baseline.startedAt).toLocaleString())}.${infoCount ? ' Informational changes are listed below.' : ''}</span>`;
+      ? `<strong>${warningCount} drift signal${warningCount === 1 ? '' : 's'} need attention</strong><span>${baselineMode}: ${escapeHtml(new Date(baseline.startedAt).toLocaleString())}.${comparison.configChanged ? ' Workflow configuration also changed, so interpret data differences with that context.' : ''}</span>`
+      : `<strong>No material warning-level drift detected</strong><span>${baselineMode}: ${escapeHtml(new Date(baseline.startedAt).toLocaleString())}.${infoCount ? ' Informational changes are listed below.' : ''}</span>`;
 
     const m = comparison.metrics;
     metrics.innerHTML = [
@@ -353,11 +356,13 @@
     const context = currentComparison();
     if (!context) return null;
     return {
-      rowmendVersion:'0.9.0',
+      rowmendVersion:'0.10.0-dev',
       generatedAt:new Date().toISOString(),
       project:{
         id:state.project.id,
-        name:state.project.name
+        name:state.project.name,
+        revision:state.project.revision || 1,
+        projectVersion:state.project.projectVersion
       },
       currentRun:state.historyRun,
       baselineRun:context.baseline,
