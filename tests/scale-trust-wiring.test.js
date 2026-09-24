@@ -66,4 +66,15 @@ assert.ok(projectCore.includes("EXPORT_FORMAT = 'rowmend-project'"), 'Projects m
 assert.ok(projectCore.includes('inspectProjectExport'), 'Projects must inspect import compatibility');
 assert.ok(projectCore.includes('revision:'), 'Projects must expose configuration revisions');
 
+const feedback = read('feedback.js');
+const onboarding = read('onboarding.js');
+assert.ok(feedback.includes("track('pro_interest', { source:'pricing' })"),
+  'Pricing CTA must emit explicit commercial-intent analytics');
+assert.ok(onboarding.includes("track('pro_interest', { source:'onboarding' })"),
+  'Onboarding CTA must emit explicit commercial-intent analytics');
+assert.ok(feedback.includes("openFeedback('pro_interest')"),
+  'Pricing CTA must open the Pro feedback flow');
+assert.ok(onboarding.includes("openFeedback('onboarding_pro')"),
+  'Onboarding CTA must open the Pro feedback flow');
+
 console.log('Scale & Trust wiring tests passed');
