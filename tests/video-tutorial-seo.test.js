@@ -23,10 +23,13 @@ assert.ok(fs.existsSync(thumbPath), 'Tutorial thumbnail is missing');
 assert.ok(fs.statSync(thumbPath).size > 50000, 'Tutorial thumbnail looks unexpectedly small');
 assert.ok(fs.existsSync(captionsPath), 'Tutorial captions are missing');
 
-assert.ok(tutorial.includes('<video controls'), 'Tutorial page must expose a playable HTML5 video');
+assert.ok(/<video\b[^>]*\bcontrols\b/i.test(tutorial), 'Tutorial page must expose a playable HTML5 video');
 assert.ok(tutorial.includes('rowmend-0.9-run-insights-tutorial.mp4'), 'Tutorial page must reference the MP4');
 assert.ok(tutorial.includes('rowmend-0.9-tutorial-thumbnail.jpg'), 'Tutorial page must expose the thumbnail');
 assert.ok(tutorial.includes('rowmend-0.9-tutorial-captions.vtt'), 'Tutorial page must expose captions');
+assert.ok(tutorial.includes('tutorial_video_play'), 'Tutorial page must track video play');
+assert.ok(tutorial.includes('tutorial_video_completed'), 'Tutorial page must track video completion');
+assert.ok(tutorial.includes('tutorial_demo_clicked'), 'Tutorial page must track demo CTA clicks');
 assert.ok(tutorial.includes('"@type": "VideoObject"'), 'Tutorial page must include VideoObject structured data');
 assert.ok(tutorial.includes('"duration": "PT1M11S"'), 'VideoObject must expose the 71-second duration');
 assert.ok(tutorial.includes('"contentUrl": "https://rowmend.netlify.app/assets/rowmend-0.9-run-insights-tutorial.mp4"'), 'VideoObject contentUrl missing');
