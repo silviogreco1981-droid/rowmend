@@ -239,9 +239,12 @@
   async function handleFile(file, sheetName = '', sheetChange = false) {
     try {
       setMessage('Reading and profiling locally…');
+      $('profileWorkspace').setAttribute('aria-busy', 'true');
       const dataset = await readFile(file, sheetName);
       if (!dataset.headers.length) throw new Error('No columns were found in the file.');
       syncExcelSheetSelector(file, dataset);
+      const largeDataset = dataset.rows.length * dataset.headers.length >= WORKER_CELL_THRESHOLD;
+      if (largeDataset) setMessage('Large dataset detected. Profiling in the background…');
       await profileDataset(dataset, file.name, 'file');
       setMessage(`${file.name}${dataset.sheetName ? ` · ${dataset.sheetName}` : ''} profiled locally.`, 'success');
       if (sheetChange) {
@@ -260,6 +263,8 @@
       }
     } catch (error) {
       setMessage(error.message || 'Unable to profile the file.', 'error');
+    } finally {
+      $('profileWorkspace').setAttribute('aria-busy', 'false');
     }
   }
 
