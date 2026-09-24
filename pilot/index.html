@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RowMend Founding Workflow Pilot — Recurring CSV & Excel Setup</title>
+  <meta name="description" content="Turn one recurring CSV or Excel import, validation or migration process into a reusable local RowMend workflow. Founding pilots start at €59." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://rowmend.netlify.app/pilot/" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="RowMend Founding Workflow Pilot — from €59" />
+  <meta property="og:description" content="Configure a recurring CSV or Excel workflow once instead of rebuilding the same checks every delivery." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://rowmend.netlify.app/pilot/" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/toolbox.css" />
+  <script defer src="/analytics.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="RowMend home"><span class="brand-mark">R</span><span>RowMend</span></a>
+    <nav><a href="/projects/">Projects</a><a href="/tutorial/">Tutorial</a><a href="/guides/">Guides</a><a href="/#pricing">Pro</a></nav>
+  </header>
+
+  <main class="shell" style="max-width:920px;padding:72px 0 96px">
+    <article>
+      <div class="eyebrow">FOUNDING WORKFLOW PILOT</div>
+      <h1 style="font-size:clamp(42px,7vw,70px);letter-spacing:-.05em;line-height:.98;margin:18px 0 24px">Turn one recurring file process into a reusable RowMend workflow.</h1>
+      <p class="lede">If the same CSV or Excel job comes back every week or month, the pilot turns the repetitive profiling, cleanup, validation and comparison steps into a RowMend Local Project you can run again.</p>
+
+      <section class="privacy" style="margin:44px 0">
+        <div><div class="eyebrow">STANDARD · €59 ONE-TIME</div><h2>One recurring workflow</h2></div>
+        <div><ul>
+          <li>RowMend Local Project configured around the case</li>
+          <li>profiling and cleanup/normalization rules where appropriate</li>
+          <li>data contract and schema/data-quality checks</li>
+          <li>import-validation profile</li>
+          <li>first local baseline for later drift comparison</li>
+          <li>short handoff plus one reasonable adjustment pass</li>
+        </ul></div>
+      </section>
+
+      <section class="privacy" style="margin:44px 0">
+        <div><div class="eyebrow">EXTENDED · €119 ONE-TIME</div><h2>A more involved case</h2></div>
+        <div><p>Everything in Standard, plus either up to two related input variants or an added migration/source-target reconciliation flow, with a documented handoff and one follow-up adjustment.</p></div>
+      </section>
+
+      <h2>Good fits</h2>
+      <ul>
+        <li>vendor or customer files that change slightly between deliveries;</li>
+        <li>ERP / CRM / database import preparation;</li>
+        <li>recurring cleanup and validation work;</li>
+        <li>duplicate, missing-value, type or schema-drift checks;</li>
+        <li>source/target reconciliation after a migration.</li>
+      </ul>
+
+      <h2>How the pilot starts</h2>
+      <p>Describe the recurring workflow and its pain points in the short application. You do not need to send production data to apply. If the case is a good fit, scope, deliverables, price and payment details are confirmed directly before any work starts.</p>
+
+      <section style="margin-top:48px;padding:28px;border:1px solid rgba(127,127,127,.24);border-radius:18px">
+        <div class="eyebrow">APPLY</div>
+        <h2 style="margin-top:10px">Start with the workflow, not the file.</h2>
+        <p>Please do not submit confidential production data. A description or anonymized example is enough to qualify the case.</p>
+        <p><a id="pilotApplyCta" class="btn primary" href="https://tally.so/r/eq47KQ">Apply for the founding pilot</a> <a class="btn ghost" href="/tutorial/">Watch the 71-second tutorial</a></p>
+      </section>
+    </article>
+  </main>
+
+  <footer class="shell footer"><div class="brand"><span class="brand-mark">R</span><span>RowMend</span></div><p>Founding Workflow Pilot · validation phase</p><div><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></footer>
+
+  <script>
+    (() => {
+      const cta = document.getElementById('pilotApplyCta');
+      if (!cta) return;
+      const sourceParams = new URLSearchParams(window.location.search);
+      const tally = new URL(cta.href);
+      for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content']) {
+        const value = sourceParams.get(key);
+        if (value) tally.searchParams.set(key, value);
+      }
+      if (!tally.searchParams.get('utm_source')) tally.searchParams.set('utm_source', 'rowmend');
+      if (!tally.searchParams.get('utm_medium')) tally.searchParams.set('utm_medium', 'pilot_page');
+      if (!tally.searchParams.get('utm_campaign')) tally.searchParams.set('utm_campaign', 'founding_pilot');
+      cta.href = tally.toString();
+      cta.addEventListener('click', () => {
+        window.RowMendAnalytics?.track('founding_pilot_apply_clicked', { source: 'pilot_page' });
+      });
+    })();
+  </script>
+</body>
+</html>
