@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://rowmend.netlify.app/sitemap.xml
+Sitemap: https://rowmend.netlify.app/video-sitemap.xml
