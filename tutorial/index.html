@@ -77,7 +77,7 @@
         <div class="eyebrow">TRY IT YOURSELF</div>
         <h2 style="margin-top:10px">Run the two-step demo locally</h2>
         <p>The demo runs in your browser. No account is required and the source dataset is not intentionally uploaded to a RowMend application backend.</p>
-        <p><a id="tutorialDemoCta" class="btn primary" href="/projects/">Try the preconfigured demo</a> <a id="tutorialQuickStartCta" class="btn ghost" href="/guides/workflow-runner-quick-start/">Read the quick start</a></p>
+        <p><a id="tutorialDemoCta" class="btn primary" href="/projects/">Try the preconfigured demo</a> <a id="tutorialQuickStartCta" class="btn ghost" href="/guides/workflow-runner-quick-start/">Read the quick start</a></p><p class="muted" style="margin-top:16px">Have a real recurring CSV/Excel workflow? <a id="tutorialPilotCta" href="https://tally.so/r/eq47KQ?utm_source=rowmend&utm_medium=onsite&utm_campaign=founding_pilot&utm_content=tutorial">Founding workflow pilots start at €59 →</a></p>
       </section>
 
       <p style="margin-top:36px">For the underlying comparison model, continue with <a href="/guides/detect-data-drift-recurring-csv/">How to detect data drift in recurring CSV files</a>.</p>
@@ -95,6 +95,7 @@
       const track = (name, properties = {}) => {
         window.RowMendAnalytics?.track(name, {
           tutorial: 'run_insights_0_9',
+          placement: 'tutorial_page',
           ...properties
         });
       };
@@ -132,6 +133,13 @@
 
       document.getElementById('tutorialQuickStartCta')?.addEventListener('click', () => {
         track('tutorial_quickstart_clicked');
+      });
+
+      document.getElementById('tutorialPilotCta')?.addEventListener('click', () => {
+        window.RowMendAnalytics?.track('founding_pilot_clicked', {
+          source: 'tutorial',
+          offer: 'standard_or_extended'
+        });
       });
     })();
   </script>
