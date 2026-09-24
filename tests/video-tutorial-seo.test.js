@@ -39,6 +39,9 @@ const desc = tutorial.match(/<meta name="description" content="([^"]+)"/)?.[1] |
 assert.ok(desc.length >= 25 && desc.length <= 160, `Tutorial meta description must be 25–160 chars, got ${desc.length}`);
 
 assert.ok(homepage.includes('/assets/rowmend-0.9-run-insights-tutorial.mp4'), 'Homepage must make the video available');
+assert.ok(homepage.includes('id="homepageTutorialVideo"'), 'Homepage tutorial video must be trackable');
+assert.ok(homepage.includes('tutorial_video_play'), 'Homepage must track tutorial video play');
+assert.ok(homepage.includes('founding_pilot_clicked'), 'Homepage must track founding pilot interest');
 assert.ok(homepage.includes('href="/tutorial/"'), 'Homepage must link to the canonical watch page');
 assert.ok(sitemap.includes('https://rowmend.netlify.app/tutorial/'), 'Main sitemap must include the watch page');
 assert.ok(videoSitemap.includes('<video:content_loc>https://rowmend.netlify.app/assets/rowmend-0.9-run-insights-tutorial.mp4</video:content_loc>'), 'Video sitemap content URL missing');
