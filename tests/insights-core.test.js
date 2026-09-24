@@ -64,6 +64,8 @@ const current = {
   assert.ok(comparison.signals.some(item => item.id === 'completeness_drop'));
   assert.ok(comparison.signals.some(item => item.id === 'duplicate_rows_increased'));
   assert.ok(comparison.signals.some(item => item.id === 'type_changed:AMOUNT'));
+  assert.ok(comparison.signals.some(item => item.id === 'mixed_type_rate_increased:AMOUNT'));
+  assert.ok(comparison.signals.some(item => item.id === 'contract_warnings_increased'));
   assert.ok(comparison.signals.some(item => item.id === 'missing_rate_increased:EMAIL'));
   assert.ok(comparison.signals.some(item => item.id === 'uniqueness_dropped:EMAIL'));
 }
