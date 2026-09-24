@@ -18,6 +18,7 @@ const project = core.addProject({
 
 assert.ok(project.id);
 assert.strictEqual(project.name, 'Monthly supplier import');
+assert.strictEqual(project.revision, 1);
 assert.strictEqual(core.listProjects().length, 1);
 assert.strictEqual(core.projectCompletion(project).configured, 0);
 
@@ -76,6 +77,7 @@ assert.strictEqual(snapshot.columns[0].topValues, undefined);
 let updated = core.setArtifact(project.id, 'profile', { snapshot }, { label:'supplier.csv' });
 assert.strictEqual(core.projectCompletion(updated).configured, 1);
 
+const revisionAfterProfile = updated.revision;
 updated = core.setArtifact(project.id, 'cleanRecipe', {
   recipe:[
     {type:'trim', columns:['NAME']},
@@ -83,6 +85,7 @@ updated = core.setArtifact(project.id, 'cleanRecipe', {
   ]
 }, {label:'Supplier cleanup'});
 assert.strictEqual(updated.artifacts.cleanRecipe.recipe.length, 2);
+assert.ok(updated.revision > revisionAfterProfile);
 
 updated = core.setArtifact(project.id, 'dataContract', {
   contract:{
@@ -117,11 +120,28 @@ const url = core.projectUrl('/migration-check/', project.id);
 assert.ok(url.includes('/migration-check/?project='));
 
 const exported = core.exportProject(updated);
+const exportedPayload = JSON.parse(exported);
+assert.strictEqual(exportedPayload.format, core.EXPORT_FORMAT);
+assert.strictEqual(exportedPayload.exportVersion, core.EXPORT_VERSION);
+assert.strictEqual(exportedPayload.rowmendVersion, core.ROWMEND_VERSION);
+assert.strictEqual(exportedPayload.project.revision, updated.revision);
+
+const exportInfo = core.inspectProjectExport(exported);
+assert.strictEqual(exportInfo.legacy, false);
+assert.strictEqual(exportInfo.projectRevision, updated.revision);
+
 const imported = core.importProject(exported);
 assert.notStrictEqual(imported.id, updated.id);
 assert.strictEqual(imported.name, updated.name);
+assert.strictEqual(imported.revision, updated.revision);
 assert.strictEqual(core.projectCompletion(imported).configured, 5);
 assert.strictEqual(core.listProjects().length, 2);
+
+const legacyInfo = core.inspectProjectExport(JSON.stringify(updated));
+assert.strictEqual(legacyInfo.legacy, true);
+const legacyImported = core.importProject(JSON.stringify(updated), { save:false });
+assert.strictEqual(legacyImported.name, updated.name);
+assert.strictEqual(legacyImported.revision, updated.revision);
 
 const duplicate = core.duplicateProject(project.id, 'Supplier copy');
 assert.strictEqual(duplicate.name, 'Supplier copy');
