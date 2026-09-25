@@ -1,0 +1,34 @@
+body.app-v2{
+  --accent:#7dd3fc;
+  --accent2:#38bdf8;
+  --line:#2a3542;
+  --muted:#94a3b2;
+  background:radial-gradient(circle at 50% -20%,#163347 0,#0b0f14 36%,#0b0f14 100%);
+}
+.app-v2 .topbar{
+  position:sticky;top:0;z-index:60;
+  width:100%;max-width:none;
+  padding:0 max(22px,calc((100vw - 1160px)/2));
+  background:rgba(9,14,20,.94);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid #22313e;
+}
+.app-v2 .brand-mark{background:#38bdf8;color:#06131b}
+.app-v2 .topbar nav{color:#9badbd}
+.app-v2 .topbar nav a:hover,.app-v2 .topbar nav a[aria-current="page"]{color:#dff6ff}
+.app-v2 .eyebrow{color:#38bdf8}
+.app-v2 .primary{background:#38bdf8;color:#06131b}
+.app-v2 .text-btn,.app-v2 .toolbox-home-card strong{color:#79d7ef}
+.app-v2 .local-badge{border-color:#20536a;background:#102632;color:#7ddbf0}
+.app-v2 .project-context-label{color:#7ddbf0;border-color:#22536a}
+.app-v2 .toolbox-drop.drag,.app-v2 .dropzone.drag{border-color:#38bdf8;background:#0c1a22}
+.app-v2 input[type="checkbox"]{accent-color:#38bdf8}
+.app-v2 .workflow-strip a.active{border-color:#2f718b;background:#102733}
+.app-v2 .workflow-strip a.active strong{color:#dff7ff}
+.app-v2 .quality-chip.good{background:#10251c;color:#8be7bd}
+.app-v2 .quality-chip.warn{background:#29230f;color:#ffe89d}
+.app-v2 .quality-chip.bad{background:#2c141a;color:#ffc1cc}
+.app-v2 .footer{border-top:1px solid #202d38}
+@media(max-width:850px){
+  .app-v2 .topbar{padding-left:18px;padding-right:18px}
+}
