@@ -42,7 +42,7 @@
       <a href="/pilot/">Pilot</a>
     </nav>
     <div class="home-v2-nav-actions">
-      <a class="btn ghost" id="homepageTutorialPageLink" href="/tutorial/">Watch demo</a>
+      <a class="btn ghost" id="homepageTutorialPageLink" data-home-tutorial href="/tutorial/">Watch demo</a>
       <a class="btn primary" href="/projects/">Try the workflow</a>
     </div>
   </header>  <main id="top">
@@ -54,7 +54,7 @@
           <p class="lede">Build the checks once. Run the next delivery through the same workflow, catch changes early and prepare a trusted output — all in your browser.</p>
           <div class="home-v2-hero-actions">
             <a class="btn primary" href="/projects/">Try the workflow →</a>
-            <a class="btn ghost" href="/tutorial/">▶ Watch 71-sec demo</a>
+            <a class="btn ghost" data-home-tutorial href="/tutorial/">▶ Watch 71-sec demo</a>
           </div>
           <div class="home-v2-trust">
             <span>✓ No upload</span>
@@ -258,10 +258,12 @@
   </div>
   <script>
     (() => {
-      document.getElementById('homepageTutorialPageLink')?.addEventListener('click', () => {
-        window.RowMendAnalytics?.track('tutorial_page_clicked', {
-          tutorial: 'run_insights_0_9',
-          placement: 'homepage'
+      document.querySelectorAll('[data-home-tutorial]').forEach((link) => {
+        link.addEventListener('click', () => {
+          window.RowMendAnalytics?.track('tutorial_page_clicked', {
+            tutorial: 'run_insights_0_9',
+            placement: 'homepage'
+          });
         });
       });
 
