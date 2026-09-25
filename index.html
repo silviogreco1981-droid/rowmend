@@ -258,45 +258,11 @@
   </div>
   <script>
     (() => {
-      const video = document.getElementById('homepageTutorialVideo');
-      const seenMilestones = new Set();
-      let playTracked = false;
-
-      const track = (name, properties = {}) => {
-        window.RowMendAnalytics?.track(name, {
-          tutorial: 'run_insights_0_9',
-          placement: 'homepage',
-          ...properties
-        });
-      };
-
-      video?.addEventListener('play', () => {
-        if (playTracked) return;
-        playTracked = true;
-        track('tutorial_video_play', {
-          duration_seconds: Math.round(video.duration || 71)
-        });
-      });
-
-      video?.addEventListener('timeupdate', () => {
-        if (!Number.isFinite(video.duration) || video.duration <= 0) return;
-        const progress = video.currentTime / video.duration;
-        for (const milestone of [25, 50, 75]) {
-          if (progress >= milestone / 100 && !seenMilestones.has(milestone)) {
-            seenMilestones.add(milestone);
-            track(`tutorial_video_${milestone}`, { progress_percent: milestone });
-          }
-        }
-      });
-
-      video?.addEventListener('ended', () => {
-        track('tutorial_video_completed', {
-          duration_seconds: Math.round(video.duration || 71)
-        });
-      });
-
       document.getElementById('homepageTutorialPageLink')?.addEventListener('click', () => {
-        track('tutorial_page_clicked');
+        window.RowMendAnalytics?.track('tutorial_page_clicked', {
+          tutorial: 'run_insights_0_9',
+          placement: 'homepage'
+        });
       });
 
       document.getElementById('homepagePilotCta')?.addEventListener('click', () => {
