@@ -61,8 +61,33 @@ body.home-v2{background:#f6f8fb;color:#102033}
 .home-v2-run-top{display:flex;justify-content:space-between;color:#7fd7ea;font-size:10px;letter-spacing:.08em}.home-v2-run-top b{color:#90a0ae;letter-spacing:0}.home-v2-run-card h3{font-size:28px;margin:10px 0 18px}
 .home-v2-run-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.home-v2-run-metrics div{background:#15232e;border:1px solid #2b3b47;border-radius:10px;padding:12px}.home-v2-run-metrics small{display:block;color:#8fa1b0}.home-v2-run-metrics strong,.home-v2-run-metrics em{display:block;font-size:20px;margin-top:2px;font-style:normal}.home-v2-run-metrics em{color:#ff9a69}
 .home-v2-run-card ul{list-style:none;padding:0;margin:18px 0;display:grid;gap:8px;font-size:13px;color:#c7d2db}.home-v2-run-card li span{display:inline-block;width:20px;color:#6ee7b7}.home-v2-run-card li span.warn{color:#f6c76e}.home-v2-run-card>a{font-size:12px;color:#7fd7ea}
-.home-v2 .tool-section{color:var(--text);background:#0d1116;border-top:0}
-.home-v2 .tool-section:before{content:"TRY IT NOW";display:block;width:min(1160px,calc(100% - 36px));margin:0 auto 10px;color:#59cbe8;font-size:11px;font-weight:800;letter-spacing:.14em}
+.home-v2-tool-intro{display:grid;grid-template-columns:.8fr 1.2fr;gap:54px;align-items:end;padding:68px 0 24px}
+.home-v2-tool-intro h2{font-size:clamp(32px,4vw,44px);line-height:1.04;letter-spacing:-.04em;margin:0}
+.home-v2-tool-intro p{margin:0;color:#536779}
+.home-v2-tool-hint{margin-top:10px!important;font-size:13px}
+.home-v2-tool-hint a{color:#0e7f9d;font-weight:750}
+.home-v2 .tool-section{
+  color:var(--text);
+  background:#f3f7f9;
+  border-top:1px solid #e3ebef;
+  border-bottom:1px solid #e3ebef;
+  padding:0 0 82px;
+}
+.home-v2 .tool-section>.shell{
+  --accent:#7dd3fc;
+  --accent2:#38bdf8;
+  --line:#2a3542;
+  background:#0d1116;
+  border:1px solid #243441;
+  border-radius:24px;
+  padding:34px;
+  color:#f4f6f8;
+  box-shadow:0 22px 60px rgba(24,55,72,.16);
+}
+.home-v2 .tool-section .eyebrow{color:#38bdf8}
+.home-v2 .tool-section .primary{background:#38bdf8;color:#06131b}
+.home-v2 .tool-section .text-btn{color:#79d7ef}
+.home-v2 .tool-section .local-badge{border-color:#20536a;background:#102632;color:#7ddbf0}
 .home-v2-after-tool{background:#fbfcfd}
 .home-v2-use-cases{padding:78px 0 60px}
 .home-v2-use-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
@@ -74,5 +99,5 @@ body.home-v2{background:#f6f8fb;color:#102033}
 .home-v2-pro{display:grid;grid-template-columns:1fr 1fr;gap:60px;padding:55px 0 70px;border-top:1px solid #e3e9ee}.home-v2-pro h2{font-size:32px}.home-v2-pro p{color:#5a6e7f;margin-top:0}.home-v2-pro .ghost{background:white}
 .home-v2 .footer{color:#6b7a88;border-top:1px solid #e5eaee}.home-v2 .footer .brand{color:#122336}.home-v2 .footer .brand-mark{background:#0e7f9d;color:white}
 @media(max-width:1000px){.home-v2-hero{grid-template-columns:1fr;gap:28px}.home-v2-product-preview{min-height:380px}.home-v2-problem-grid,.home-v2-value,.home-v2-local{grid-template-columns:1fr}.home-v2-flow{grid-template-columns:repeat(3,1fr);gap:10px}.home-v2-flow i{display:none}.home-v2-value{gap:32px}.home-v2-local-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:850px){.home-v2-topbar nav{display:none}.home-v2-nav-actions .ghost{display:none}.home-v2-problem-cards{grid-template-columns:1fr}.home-v2-section-head{align-items:flex-start;flex-direction:column}.home-v2-use-grid,.home-v2-local-grid{grid-template-columns:1fr}.home-v2-pilot,.home-v2-pro{grid-template-columns:1fr}.home-v2-pilot-actions{justify-items:start}}
+@media(max-width:850px){.home-v2-tool-intro{grid-template-columns:1fr;gap:18px}.home-v2 .tool-section>.shell{padding:22px;border-radius:18px}.home-v2-topbar nav{display:none}.home-v2-nav-actions .ghost{display:none}.home-v2-problem-cards{grid-template-columns:1fr}.home-v2-section-head{align-items:flex-start;flex-direction:column}.home-v2-use-grid,.home-v2-local-grid{grid-template-columns:1fr}.home-v2-pilot,.home-v2-pro{grid-template-columns:1fr}.home-v2-pilot-actions{justify-items:start}}
 @media(max-width:650px){.home-v2-topbar{padding-left:18px;padding-right:18px}.home-v2-topbar .brand{font-size:17px}.home-v2-nav-actions .primary{font-size:12px;padding:9px 11px}.home-v2-hero{padding-top:44px;min-height:auto}.home-v2-hero h1{font-size:43px}.home-v2-hero-actions,.home-v2-value-actions{flex-direction:column}.home-v2-trust{display:grid;gap:8px}.home-v2-product-preview{min-height:300px}.home-v2-files{display:none}.home-v2-window{width:100%;transform:none}.home-v2-window-body{grid-template-columns:90px 1fr}.home-v2-window-body aside{padding:12px 7px}.home-v2-window-body>div{padding:14px}.home-v2-preview-table>div{grid-template-columns:1.35fr .75fr .75fr}.home-v2-preview-table>div span:nth-child(4),.home-v2-preview-table>div strong{display:none}.home-v2-problem-grid{padding:42px 0}.home-v2-flow{grid-template-columns:1fr 1fr}.home-v2-value-points{grid-template-columns:1fr}.home-v2-run-metrics{grid-template-columns:1fr}.home-v2-pilot{padding:25px}.home-v2-pilot h2{font-size:30px}}
