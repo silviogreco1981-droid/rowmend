@@ -32,4 +32,10 @@ operations.forEach(operation => {
   assert.ok(js.includes(`$('${id}')`), `Missing advanced transform form wiring: ${id}`);
 });
 
+
+const referencedIds = [...js.matchAll(/\$\('([^']+)'\)/g)].map(match => match[1]);
+[...new Set(referencedIds)].forEach(id => {
+  assert.ok(html.includes(`id="${id}"`), `JavaScript references missing HTML id: ${id}`);
+});
+
 console.log('Pilot transform UI wiring tests passed');
