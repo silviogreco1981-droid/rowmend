@@ -155,6 +155,50 @@ const project = {
   assert.ok(csv.startsWith('ROW,ERRORS,ID,EMAIL'));
 }
 
+
+{
+  const dataset = {
+    headers:['ID','FIRST_NAME','LAST_NAME','COUNTRY','AMOUNT','RATE'],
+    rows:[
+      {ID:'1',FIRST_NAME:' Alice ',LAST_NAME:'Rossi',COUNTRY:'Italia',AMOUNT:'100',RATE:'1.2'}
+    ]
+  };
+  const pilotProject = {
+    artifacts:{
+      cleanRecipe:{
+        recipe:[
+          {type:'trim',columns:['FIRST_NAME','LAST_NAME','COUNTRY']},
+          {type:'concat',columns:['FIRST_NAME','LAST_NAME'],separator:' ',newName:'FULL_NAME'},
+          {type:'value_map',column:'COUNTRY',mapping:{Italia:'IT'}},
+          {type:'calculate',column:'AMOUNT',operator:'*',rightColumn:'RATE',newName:'LOCAL_AMOUNT'}
+        ]
+      },
+      dataContract:null,
+      importProfile:{
+        profile:{
+          tableName:'PILOT_CUSTOMERS',
+          dialect:'postgres',
+          keyColumn:'ID',
+          config:{
+            ID:{target:'ID',required:true,unique:true,email:false,type:'number'},
+            FULL_NAME:{target:'FULL_NAME',required:true,unique:false,email:false,type:'string'},
+            COUNTRY:{target:'COUNTRY',required:true,unique:false,email:false,type:'string'},
+            LOCAL_AMOUNT:{target:'LOCAL_AMOUNT',required:true,unique:false,email:false,type:'number'}
+          }
+        }
+      }
+    }
+  };
+
+  const result = workflowCore.runWorkflow(dataset, pilotProject, {sqlMode:'insert'});
+  assert.strictEqual(result.status, 'PASS');
+  assert.strictEqual(result.cleanedDataset.rows[0].FULL_NAME, 'Alice Rossi');
+  assert.strictEqual(result.cleanedDataset.rows[0].COUNTRY, 'IT');
+  assert.strictEqual(result.cleanedDataset.rows[0].LOCAL_AMOUNT, 120);
+  assert.ok(result.sqlResult.sql.includes('"FULL_NAME"'));
+  assert.ok(result.sqlResult.sql.includes("'Alice Rossi'"));
+}
+
 {
   const result = workflowCore.runWorkflow(baseline, {
     artifacts:{cleanRecipe:null,dataContract:null,importProfile:null}
