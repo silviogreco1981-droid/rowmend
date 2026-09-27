@@ -111,6 +111,13 @@
       case 'remove_key_duplicates': return `Remove duplicates by ${target} · keep ${operation.keep || 'first'}`;
       case 'drop_empty_rows': return 'Drop completely empty rows';
       case 'filter_nonempty': return `Keep rows where ${operation.column} is not empty`;
+      case 'concat': return `Concatenate ${target} → ${operation.newName}`;
+      case 'split': return `Split ${operation.column} by "${operation.delimiter}" → ${(operation.newNames || []).join(' + ')}`;
+      case 'regex_replace': return `Regex replace /${operation.pattern}/${operation.flags || ''} · ${target}`;
+      case 'regex_extract': return `Regex extract from ${operation.column} → ${operation.newName}`;
+      case 'value_map': return `Map ${Object.keys(operation.mapping || {}).length} values · ${operation.column}`;
+      case 'conditional_map': return `If ${operation.column} ${operation.operator} "${operation.value ?? ''}" → ${operation.newName}`;
+      case 'calculate': return `Calculate ${operation.column} ${operation.operator} ${operation.rightColumn || operation.rightValue} → ${operation.newName}`;
       default: return operation.type;
     }
   }
@@ -165,7 +172,7 @@
   }
 
   function operationAllowsAll(type) {
-    return ['trim','uppercase','lowercase','empty_to_null','find_replace'].includes(type);
+    return ['trim','uppercase','lowercase','empty_to_null','find_replace','regex_replace'].includes(type);
   }
 
   function populateColumns() {
@@ -175,7 +182,7 @@
     const headers = state.transformed.headers;
     const previous = [...select.selectedOptions].map(option => option.value);
 
-    select.multiple = type === 'remove_key_duplicates';
+    select.multiple = ['remove_key_duplicates','concat'].includes(type);
     select.size = select.multiple ? Math.min(6, Math.max(3, headers.length)) : 1;
 
     const all = operationAllowsAll(type) ? '<option value="__all__">All columns</option>' : '';
@@ -187,6 +194,14 @@
     });
 
     if (![...select.selectedOptions].length && select.options.length) select.options[0].selected = true;
+
+    const rightSelect = $('calculateRightColumn');
+    if (rightSelect) {
+      const currentRight = rightSelect.value;
+      rightSelect.innerHTML = '<option value="">Use constant value</option>' +
+        headers.map(header => `<option value="${escapeHtml(header)}">${escapeHtml(header)}</option>`).join('');
+      if ([...rightSelect.options].some(option => option.value === currentRight)) rightSelect.value = currentRight;
+    }
   }
 
   function updateOperationForm() {
@@ -195,7 +210,32 @@
     $('findReplaceFields').classList.toggle('hidden', type !== 'find_replace');
     $('renameFields').classList.toggle('hidden', type !== 'rename');
     $('dedupeFields').classList.toggle('hidden', type !== 'remove_key_duplicates');
+    $('concatFields').classList.toggle('hidden', type !== 'concat');
+    $('splitFields').classList.toggle('hidden', type !== 'split');
+    $('regexFields').classList.toggle('hidden', !['regex_replace','regex_extract'].includes(type));
+    $('regexReplacement').classList.toggle('hidden', type !== 'regex_replace');
+    $('regexExtractFields').classList.toggle('hidden', type !== 'regex_extract');
+    $('valueMapFields').classList.toggle('hidden', type !== 'value_map');
+    $('conditionalFields').classList.toggle('hidden', type !== 'conditional_map');
+    $('calculateFields').classList.toggle('hidden', type !== 'calculate');
     populateColumns();
+  }
+
+  function parseValueMap(text) {
+    const mapping = {};
+    String(text || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean).forEach(line => {
+      const arrow = line.indexOf('=>');
+      const equal = line.indexOf('=');
+      const index = arrow >= 0 ? arrow : equal;
+      const width = arrow >= 0 ? 2 : 1;
+      if (index < 0) throw new Error(`Invalid value-map line: "${line}". Use source => target.`);
+      const source = line.slice(0, index).trim();
+      const target = line.slice(index + width).trim();
+      if (!source) throw new Error('Value-map source values cannot be empty.');
+      mapping[source] = target;
+    });
+    if (!Object.keys(mapping).length) throw new Error('Enter at least one value mapping.');
+    return mapping;
   }
 
   function buildOperation() {
@@ -230,6 +270,59 @@
       operation.keep = $('dedupeKeep').value;
     }
 
+    if (type === 'concat') {
+      operation.columns = selected.filter(value => value !== '__all__');
+      if (!operation.columns.length) throw new Error('Select at least one column to concatenate.');
+      operation.separator = $('concatSeparator').value;
+      operation.newName = $('concatTarget').value.trim();
+      if (!operation.newName) throw new Error('Enter the concatenated target column name.');
+      delete operation.column;
+    }
+
+    if (type === 'split') {
+      operation.delimiter = $('splitDelimiter').value;
+      operation.newNames = $('splitTargets').value.split(',').map(value => value.trim()).filter(Boolean);
+      if (!operation.delimiter) throw new Error('Enter a split delimiter.');
+      if (!operation.newNames.length) throw new Error('Enter at least one split target column.');
+    }
+
+    if (type === 'regex_replace' || type === 'regex_extract') {
+      operation.pattern = $('regexPattern').value;
+      operation.flags = $('regexFlags').value.trim();
+      if (!operation.pattern) throw new Error('Enter a regular expression.');
+      if (type === 'regex_replace') {
+        operation.replacement = $('regexReplacementValue').value;
+      } else {
+        operation.newName = $('regexTarget').value.trim();
+        operation.group = Number($('regexGroup').value || 1);
+        if (!operation.newName) throw new Error('Enter the regex extraction target column.');
+      }
+    }
+
+    if (type === 'value_map') {
+      operation.mapping = parseValueMap($('valueMapText').value);
+      operation.caseInsensitive = $('valueMapCaseInsensitive').checked;
+    }
+
+    if (type === 'conditional_map') {
+      operation.operator = $('conditionOperator').value;
+      operation.value = $('conditionValue').value;
+      operation.trueValue = $('conditionTrueValue').value;
+      operation.falseValue = $('conditionFalseValue').value;
+      operation.newName = $('conditionTarget').value.trim();
+      operation.caseInsensitive = $('conditionCaseInsensitive').checked;
+      if (!operation.newName) throw new Error('Enter the conditional target column.');
+    }
+
+    if (type === 'calculate') {
+      operation.operator = $('calculateOperator').value;
+      operation.newName = $('calculateTarget').value.trim();
+      operation.rightColumn = $('calculateRightColumn').value || undefined;
+      operation.rightValue = operation.rightColumn ? undefined : $('calculateRightValue').value;
+      if (!operation.newName) throw new Error('Enter the calculation target column.');
+      if (!operation.rightColumn && String(operation.rightValue).trim() === '') throw new Error('Choose a right-hand column or enter a constant.');
+    }
+
     return operation;
   }
 
@@ -250,6 +343,11 @@
       $('findValue').value = '';
       $('replaceValue').value = '';
       $('renameValue').value = '';
+      $('concatTarget').value = '';
+      $('splitTargets').value = '';
+      $('regexTarget').value = '';
+      $('conditionTarget').value = '';
+      $('calculateTarget').value = '';
     } catch (error) {
       setMessage(error.message || 'Unable to add the transformation.', 'error');
     }
