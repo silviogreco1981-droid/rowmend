@@ -90,6 +90,127 @@ const core = require('../data-core.js');
   assert.strictEqual(out.rows.length, 2);
 }
 
+
+{
+  const dataset = {
+    headers:['FIRST_NAME','LAST_NAME'],
+    rows:[{FIRST_NAME:'Alice',LAST_NAME:'Rossi'}]
+  };
+  const out = core.applyOperation(dataset, {
+    type:'concat',
+    columns:['FIRST_NAME','LAST_NAME'],
+    separator:' ',
+    newName:'FULL_NAME'
+  });
+  assert.deepStrictEqual(out.headers, ['FIRST_NAME','LAST_NAME','FULL_NAME']);
+  assert.strictEqual(out.rows[0].FULL_NAME, 'Alice Rossi');
+}
+
+{
+  const dataset = {
+    headers:['CODE'],
+    rows:[{CODE:'IT-001'}]
+  };
+  const out = core.applyOperation(dataset, {
+    type:'split',
+    column:'CODE',
+    delimiter:'-',
+    newNames:['COUNTRY','NUMBER']
+  });
+  assert.strictEqual(out.rows[0].COUNTRY, 'IT');
+  assert.strictEqual(out.rows[0].NUMBER, '001');
+}
+
+{
+  const dataset = {
+    headers:['PHONE'],
+    rows:[{PHONE:'+39 (0824) 123-456'}]
+  };
+  const out = core.applyOperation(dataset, {
+    type:'regex_replace',
+    column:'PHONE',
+    pattern:'[^0-9]+',
+    flags:'g',
+    replacement:''
+  });
+  assert.strictEqual(out.rows[0].PHONE, '390824123456');
+}
+
+{
+  const dataset = {
+    headers:['SKU'],
+    rows:[{SKU:'IT-ABC-42'}]
+  };
+  const out = core.applyOperation(dataset, {
+    type:'regex_extract',
+    column:'SKU',
+    pattern:'^([A-Z]{2})-',
+    group:1,
+    newName:'COUNTRY'
+  });
+  assert.strictEqual(out.rows[0].COUNTRY, 'IT');
+}
+
+{
+  const dataset = {
+    headers:['COUNTRY'],
+    rows:[{COUNTRY:'Italia'},{COUNTRY:'GERMANY'},{COUNTRY:'Spain'}]
+  };
+  const out = core.applyOperation(dataset, {
+    type:'value_map',
+    column:'COUNTRY',
+    mapping:{Italia:'IT',Germany:'DE'},
+    caseInsensitive:true
+  });
+  assert.deepStrictEqual(out.rows.map(row => row.COUNTRY), ['IT','DE','Spain']);
+}
+
+{
+  const dataset = {
+    headers:['STATUS'],
+    rows:[{STATUS:'active'},{STATUS:'inactive'}]
+  };
+  const out = core.applyOperation(dataset, {
+    type:'conditional_map',
+    column:'STATUS',
+    operator:'equals',
+    value:'active',
+    trueValue:'Y',
+    falseValue:'N',
+    newName:'ENABLED',
+    caseInsensitive:true
+  });
+  assert.deepStrictEqual(out.rows.map(row => row.ENABLED), ['Y','N']);
+}
+
+{
+  const dataset = {
+    headers:['AMOUNT','RATE'],
+    rows:[{AMOUNT:'100',RATE:'1.2'},{AMOUNT:'50',RATE:'2'}]
+  };
+  const out = core.applyOperation(dataset, {
+    type:'calculate',
+    column:'AMOUNT',
+    operator:'*',
+    rightColumn:'RATE',
+    newName:'LOCAL_AMOUNT'
+  });
+  assert.deepStrictEqual(out.rows.map(row => row.LOCAL_AMOUNT), [120,100]);
+}
+
+{
+  const dataset = {
+    headers:['AMOUNT'],
+    rows:[{AMOUNT:'100'}]
+  };
+  const out = core.applyRecipe(dataset, [
+    {type:'calculate',column:'AMOUNT',operator:'*',rightValue:'1.22',newName:'GROSS'},
+    {type:'concat',columns:['AMOUNT','GROSS'],separator:' -> ',newName:'TRACE'}
+  ]);
+  assert.strictEqual(out.rows[0].GROSS, 122);
+  assert.strictEqual(out.rows[0].TRACE, '100 -> 122');
+}
+
 {
   const rows = Array.from({length:100000}, (_, i) => ({
     ID:String(i),
