@@ -213,7 +213,7 @@
     $('concatFields').classList.toggle('hidden', type !== 'concat');
     $('splitFields').classList.toggle('hidden', type !== 'split');
     $('regexFields').classList.toggle('hidden', !['regex_replace','regex_extract'].includes(type));
-    $('regexReplacement').classList.toggle('hidden', type !== 'regex_replace');
+    $('regexReplacementValue').classList.toggle('hidden', type !== 'regex_replace');
     $('regexExtractFields').classList.toggle('hidden', type !== 'regex_extract');
     $('valueMapFields').classList.toggle('hidden', type !== 'value_map');
     $('conditionalFields').classList.toggle('hidden', type !== 'conditional_map');
