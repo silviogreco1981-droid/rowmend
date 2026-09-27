@@ -426,6 +426,154 @@
       const column = String(operation.column || '');
       if (!headers.includes(column)) throw new Error('Filter column does not exist.');
       rows = rows.filter(row => String(row[column] ?? '').trim() !== '');
+    } else if (operation.type === 'concat') {
+      const columns = selectedColumns(operation, headers);
+      const newName = String(operation.newName || '').trim();
+      if (columns.length < 1) throw new Error('Select at least one column to concatenate.');
+      if (!newName) throw new Error('A target column name is required for concatenation.');
+      if (headers.some(header => header.toLowerCase() === newName.toLowerCase())) {
+        throw new Error('The concatenation target column already exists.');
+      }
+      const separator = String(operation.separator ?? '');
+      headers = [...headers, newName];
+      rows = rows.map(row => ({
+        ...row,
+        [newName]: columns.map(column => row[column] ?? '').join(separator)
+      }));
+    } else if (operation.type === 'split') {
+      const column = String(operation.column || '');
+      if (!headers.includes(column)) throw new Error('Split column does not exist.');
+      const delimiter = String(operation.delimiter ?? '');
+      if (!delimiter) throw new Error('Split delimiter is required.');
+      const newNames = (operation.newNames || []).map(name => String(name || '').trim()).filter(Boolean);
+      if (!newNames.length) throw new Error('At least one split target column is required.');
+      const normalizedNames = newNames.map(name => name.toLowerCase());
+      if (new Set(normalizedNames).size !== normalizedNames.length) throw new Error('Split target column names must be unique.');
+      const existing = new Set(headers.map(header => header.toLowerCase()));
+      const collision = newNames.find(name => existing.has(name.toLowerCase()));
+      if (collision) throw new Error(`Split target column already exists: ${collision}`);
+      headers = [...headers, ...newNames];
+      rows = rows.map(row => {
+        const parts = String(row[column] ?? '').split(delimiter);
+        const next = { ...row };
+        newNames.forEach((name, index) => { next[name] = parts[index] ?? ''; });
+        return next;
+      });
+    } else if (operation.type === 'regex_replace') {
+      const columns = selectedColumns(operation, headers);
+      const pattern = String(operation.pattern ?? '');
+      if (!pattern) throw new Error('Regex pattern is required.');
+      const flags = String(operation.flags ?? 'g');
+      let regex;
+      try { regex = new RegExp(pattern, flags); }
+      catch (error) { throw new Error(`Invalid regular expression: ${error.message}`); }
+      const replacement = String(operation.replacement ?? '');
+      rows = applyCellOperation(rows, headers, { columns }, value => {
+        if (value === null || value === undefined) return value;
+        regex.lastIndex = 0;
+        return String(value).replace(regex, replacement);
+      });
+    } else if (operation.type === 'regex_extract') {
+      const column = String(operation.column || '');
+      if (!headers.includes(column)) throw new Error('Regex source column does not exist.');
+      const pattern = String(operation.pattern ?? '');
+      if (!pattern) throw new Error('Regex pattern is required.');
+      const newName = String(operation.newName || '').trim();
+      if (!newName) throw new Error('A target column name is required for regex extraction.');
+      if (headers.some(header => header.toLowerCase() === newName.toLowerCase())) {
+        throw new Error('The regex extraction target column already exists.');
+      }
+      const flags = String(operation.flags ?? '').replace(/g/g, '');
+      let regex;
+      try { regex = new RegExp(pattern, flags); }
+      catch (error) { throw new Error(`Invalid regular expression: ${error.message}`); }
+      const group = Number.isInteger(Number(operation.group)) ? Math.max(0, Number(operation.group)) : 1;
+      headers = [...headers, newName];
+      rows = rows.map(row => {
+        regex.lastIndex = 0;
+        const match = regex.exec(String(row[column] ?? ''));
+        const extracted = match ? (match[group] ?? (group === 1 ? match[0] : '')) : '';
+        return { ...row, [newName]: extracted };
+      });
+    } else if (operation.type === 'value_map') {
+      const column = String(operation.column || '');
+      if (!headers.includes(column)) throw new Error('Value-map column does not exist.');
+      const mapping = operation.mapping;
+      if (!mapping || typeof mapping !== 'object' || Array.isArray(mapping)) throw new Error('Value map must be an object.');
+      const caseInsensitive = operation.caseInsensitive === true;
+      const entries = Object.entries(mapping);
+      const lookup = new Map(entries.map(([key, value]) => [
+        caseInsensitive ? key.toLocaleLowerCase() : key,
+        value
+      ]));
+      rows = rows.map(row => {
+        const raw = row[column];
+        const key = caseInsensitive ? String(raw ?? '').toLocaleLowerCase() : String(raw ?? '');
+        if (!lookup.has(key)) return { ...row };
+        return { ...row, [column]: lookup.get(key) };
+      });
+    } else if (operation.type === 'conditional_map') {
+      const column = String(operation.column || '');
+      if (!headers.includes(column)) throw new Error('Conditional source column does not exist.');
+      const newName = String(operation.newName || '').trim();
+      if (!newName) throw new Error('A target column name is required for conditional mapping.');
+      if (headers.some(header => header.toLowerCase() === newName.toLowerCase())) {
+        throw new Error('The conditional target column already exists.');
+      }
+      const operator = String(operation.operator || 'equals');
+      const compareValue = String(operation.value ?? '');
+      const trueValue = operation.trueValue ?? '';
+      const falseValue = operation.falseValue ?? '';
+      const caseInsensitive = operation.caseInsensitive === true;
+      const matches = rawValue => {
+        let left = String(rawValue ?? '');
+        let right = compareValue;
+        if (caseInsensitive) {
+          left = left.toLocaleLowerCase();
+          right = right.toLocaleLowerCase();
+        }
+        if (operator === 'equals') return left === right;
+        if (operator === 'not_equals') return left !== right;
+        if (operator === 'contains') return left.includes(right);
+        if (operator === 'starts_with') return left.startsWith(right);
+        if (operator === 'ends_with') return left.endsWith(right);
+        if (operator === 'is_empty') return left.trim() === '';
+        if (operator === 'is_not_empty') return left.trim() !== '';
+        throw new Error(`Unsupported conditional operator: ${operator}`);
+      };
+      headers = [...headers, newName];
+      rows = rows.map(row => ({ ...row, [newName]: matches(row[column]) ? trueValue : falseValue }));
+    } else if (operation.type === 'calculate') {
+      const column = String(operation.column || '');
+      if (!headers.includes(column)) throw new Error('Calculation source column does not exist.');
+      const newName = String(operation.newName || '').trim();
+      if (!newName) throw new Error('A target column name is required for calculation.');
+      if (headers.some(header => header.toLowerCase() === newName.toLowerCase())) {
+        throw new Error('The calculation target column already exists.');
+      }
+      const operator = String(operation.operator || '+');
+      if (!['+','-','*','/'].includes(operator)) throw new Error('Unsupported calculation operator.');
+      const rightColumn = operation.rightColumn ? String(operation.rightColumn) : '';
+      if (rightColumn && !headers.includes(rightColumn)) throw new Error('Calculation right-hand column does not exist.');
+      const rightValue = operation.rightValue;
+      const toNumber = value => {
+        const text = String(value ?? '').trim().replace(',', '.');
+        if (!text) return NaN;
+        return Number(text);
+      };
+      headers = [...headers, newName];
+      rows = rows.map(row => {
+        const left = toNumber(row[column]);
+        const right = rightColumn ? toNumber(row[rightColumn]) : toNumber(rightValue);
+        let result = '';
+        if (Number.isFinite(left) && Number.isFinite(right)) {
+          if (operator === '+') result = left + right;
+          if (operator === '-') result = left - right;
+          if (operator === '*') result = left * right;
+          if (operator === '/' && right !== 0) result = left / right;
+        }
+        return { ...row, [newName]: result };
+      });
     } else {
       throw new Error(`Unsupported transform operation: ${operation.type}`);
     }
