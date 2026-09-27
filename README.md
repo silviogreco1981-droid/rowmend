@@ -58,6 +58,7 @@ It helps you answer questions like:
 ### Clean & Transform
 - Build an ordered, reversible cleanup recipe.
 - Trim whitespace, normalize text case, convert empty values to NULL, find/replace values and rename columns.
+- Build derived fields with concatenation, splitting, regex extraction/replacement, exact value maps, simple conditional mappings and numeric calculations.
 - Remove exact duplicates or deduplicate by one or more key columns.
 - Preview before/after data and export the transformed CSV.
 - Save reusable recipes in browser localStorage.
