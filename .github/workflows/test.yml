@@ -20,6 +20,7 @@ jobs:
           node --check workflow-core.js
           node --check insights-core.js
           node --check projects/run/runner.js
+          node --check clean-data/clean-data.js
       - name: Run core tests
         run: |
           for test in tests/*.test.js; do

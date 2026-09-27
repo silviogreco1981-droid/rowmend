@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Clean & Transform CSV Data — RowMend</title>
-  <meta name="description" content="Clean and transform CSV, TSV and Excel locally. Trim text, normalize case, replace values, rename columns, remove duplicates and export clean CSV." />
+  <meta name="description" content="Clean and transform CSV, TSV and Excel locally. Normalize, map, split, concatenate, use regex, calculate derived fields, remove duplicates and export clean CSV." />
   <meta name="robots" content="index,follow" />
   <link rel="canonical" href="https://rowmend.netlify.app/clean-data/" />
   <meta property="og:title" content="Clean & Transform CSV Data — RowMend" />
@@ -100,6 +100,13 @@
                   <option value="remove_key_duplicates">Remove duplicates by key</option>
                   <option value="drop_empty_rows">Drop completely empty rows</option>
                   <option value="filter_nonempty">Keep rows where column is not empty</option>
+                  <option value="concat">Concatenate columns</option>
+                  <option value="split">Split column</option>
+                  <option value="regex_replace">Regex replace</option>
+                  <option value="regex_extract">Regex extract to new column</option>
+                  <option value="value_map">Map known values</option>
+                  <option value="conditional_map">Conditional derived value</option>
+                  <option value="calculate">Calculate derived numeric column</option>
                 </select>
               </div>
               <div class="field-group" id="operationColumnGroup">
@@ -118,6 +125,54 @@
             </div>
             <div class="operation-extra hidden" id="dedupeFields">
               <select id="dedupeKeep"><option value="first">Keep first occurrence</option><option value="last">Keep last occurrence</option></select>
+            </div>
+            <div class="operation-extra hidden" id="concatFields">
+              <input id="concatSeparator" placeholder="Separator, e.g. space or -" />
+              <input id="concatTarget" placeholder="New column, e.g. FULL_NAME" />
+            </div>
+            <div class="operation-extra hidden" id="splitFields">
+              <input id="splitDelimiter" placeholder="Delimiter, e.g. -" />
+              <input id="splitTargets" placeholder="New columns, comma-separated" />
+            </div>
+            <div class="operation-extra hidden" id="regexFields">
+              <input id="regexPattern" placeholder="Regex pattern, e.g. ^([A-Z]{2})-" />
+              <input id="regexFlags" placeholder="Flags, e.g. i or gi" />
+              <input id="regexReplacementValue" class="hidden" placeholder="Replacement, e.g. $1" />
+              <div id="regexExtractFields" class="operation-subgrid hidden">
+                <input id="regexTarget" placeholder="New column name" />
+                <input id="regexGroup" type="number" min="0" value="1" placeholder="Capture group" />
+              </div>
+            </div>
+            <div class="operation-extra hidden" id="valueMapFields">
+              <textarea id="valueMapText" rows="4" placeholder="One mapping per line&#10;Italia => IT&#10;Germany => DE"></textarea>
+              <label class="inline-check"><input id="valueMapCaseInsensitive" type="checkbox" /> Case-insensitive source values</label>
+            </div>
+            <div class="operation-extra hidden" id="conditionalFields">
+              <select id="conditionOperator">
+                <option value="equals">Equals</option>
+                <option value="not_equals">Does not equal</option>
+                <option value="contains">Contains</option>
+                <option value="starts_with">Starts with</option>
+                <option value="ends_with">Ends with</option>
+                <option value="is_empty">Is empty</option>
+                <option value="is_not_empty">Is not empty</option>
+              </select>
+              <input id="conditionValue" placeholder="Compare value" />
+              <input id="conditionTrueValue" placeholder="Value when true" />
+              <input id="conditionFalseValue" placeholder="Value when false" />
+              <input id="conditionTarget" placeholder="New target column" />
+              <label class="inline-check"><input id="conditionCaseInsensitive" type="checkbox" /> Case-insensitive comparison</label>
+            </div>
+            <div class="operation-extra hidden" id="calculateFields">
+              <select id="calculateOperator">
+                <option value="+">Add (+)</option>
+                <option value="-">Subtract (-)</option>
+                <option value="*">Multiply (×)</option>
+                <option value="/">Divide (÷)</option>
+              </select>
+              <select id="calculateRightColumn"><option value="">Use constant value</option></select>
+              <input id="calculateRightValue" placeholder="Constant, e.g. 1.22" />
+              <input id="calculateTarget" placeholder="New target column" />
             </div>
 
             <div class="recipe-list" id="recipeList"></div>
