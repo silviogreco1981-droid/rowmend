@@ -222,7 +222,7 @@
   }
 
   function parseValueMap(text) {
-    const mapping = {};
+    const mapping = Object.create(null);
     String(text || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean).forEach(line => {
       const arrow = line.indexOf('=>');
       const equal = line.indexOf('=');
